@@ -18,5 +18,8 @@ public class ByteBufferOverflowException : ByteEncoderException
     public ByteBufferOverflowException(string message, Exception inner) : base(message, inner) { }
 
     /// <inheritdoc />
+#if NET8_0_OR_GREATER
+    [Obsolete]
+#endif
     protected ByteBufferOverflowException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }

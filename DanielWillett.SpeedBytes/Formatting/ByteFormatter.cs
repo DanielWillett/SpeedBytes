@@ -58,6 +58,7 @@ public static class ByteFormatter
     /// <summary>
     /// Convert binary data to a formatted display string and write it to a span.
     /// </summary>
+    /// <returns>Number of characters written to <paramref name="output"/>.</returns>
     /// <remarks>Use <see cref="GetMaxBinarySize"/> to get the length of the span beforehand.</remarks>
     public static int FormatBinary(ReadOnlySpan<byte> bytes, Span<char> output, ByteStringFormat format)
     {
@@ -136,9 +137,6 @@ public static class ByteFormatter
                 WriteByteBySize(bytes[i], output.Slice(spanOffset), byteSize);
                 spanOffset += byteSize;
             }
-
-            //if (spanOffset != output.Length)
-            //    throw new InvalidOperationException($"Failed to correctly calculate the length of a byte-to-string sequence (expected: {output.Length}, actual: {spanOffset}).");
 
             return spanOffset;
         }
@@ -250,9 +248,6 @@ public static class ByteFormatter
             WriteByteBySize(bytes[(int)index], output.Slice(spanOffset), byteSize);
             spanOffset += byteSize;
         }
-
-        //if (spanOffset != output.Length)
-        //    throw new InvalidOperationException($"Failed to correctly calculate the length of a byte-to-string sequence (expected: {output.Length}, actual: {spanOffset}).");
 
         return spanOffset;
     }
@@ -444,6 +439,7 @@ public static class ByteFormatter
     /// <summary>
     /// Format a byte size into a display string. Use <see cref="GetCapacityLength"/> to get the length of <paramref name="output"/>.
     /// </summary>
+    /// <returns>Number of characters written to <paramref name="output"/>.</returns>
     public static int FormatCapacity(long length, Span<char> output, int decimals = 1)
     {
         if (_sizeCodes1024 == null)
@@ -524,7 +520,7 @@ public static class ByteFormatter
     /// Writes one zero-padded byte to a span in either base 16, base 10, or base 2.
     /// </summary>
     /// <remarks>Base 16 will write 2 characters, base 10 will write 3 characters, and base 2 will write 8 characters.</remarks>
-    /// <returns>The amount of characters written.</returns>
+    /// <returns>Number of characters written to <paramref name="span"/>.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Not a supported radix.</exception>
     public static int WriteByteByRadix(byte value, Span<char> span, int radix)
     {
@@ -544,6 +540,7 @@ public static class ByteFormatter
     /// <summary>
     /// Writes one zero-padded byte to a span in either base 16 (<paramref name="byteSize"/> = 2), base 10 (<paramref name="byteSize"/> = 3), or base 2 (<paramref name="byteSize"/> = 8).
     /// </summary>
+    /// <returns>Number of characters written to <paramref name="span"/>.</returns>
     /// <exception cref="ArgumentOutOfRangeException">Not a supported byte size.</exception>
     public static void WriteByteBySize(byte value, Span<char> span, int byteSize)
     {

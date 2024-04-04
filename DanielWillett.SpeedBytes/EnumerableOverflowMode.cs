@@ -16,7 +16,7 @@ public enum EnumerableOverflowMode
     LogAndWriteEmpty,
 
     /// <summary>
-    /// Truncate the enumerable if it is too long.
+    /// Truncate the enumerable if it is too long to the max length.
     /// </summary>
     Truncate
 }

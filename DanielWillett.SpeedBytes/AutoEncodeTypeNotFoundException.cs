@@ -19,6 +19,9 @@ public class AutoEncodeTypeNotFoundException : Exception
     public string TypeName { get; }
 
     /// <inheritdoc />
+#if NET8_0_OR_GREATER
+    [Obsolete]
+#endif
     protected AutoEncodeTypeNotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
     {
         string typeName = info.GetString("Type") ?? string.Empty;
@@ -38,6 +41,9 @@ public class AutoEncodeTypeNotFoundException : Exception
     }
 
     /// <inheritdoc />
+#if NET8_0_OR_GREATER
+    [Obsolete]
+#endif
     public override void GetObjectData(SerializationInfo info, StreamingContext context)
     {
         base.GetObjectData(info, context);

@@ -1,8 +1,12 @@
 ﻿#define PRINT_BYTES
 using DanielWillett.SpeedBytes.Compression;
 using DanielWillett.SpeedBytes.Formatting;
+using System.Collections;
 using System.Globalization;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+
+// ReSharper disable LocalizableElement
 
 namespace DanielWillett.SpeedBytes.Tests;
 
@@ -25,15 +29,29 @@ public class ByteEncoderTests
 #if !PRINT_BYTES
         return;
 #endif
+
+        const ByteStringFormat fmt =
+            ByteStringFormat.NewLineAtBeginning
+            | ByteStringFormat.ColumnLabels
+            | ByteStringFormat.RowLabels
+            | ByteStringFormat.Columns8;
+
         try
         {
-            if (writer.Stream != null)
+            if (writer.Stream is MemoryStream mem)
             {
-                Console.WriteLine("Writer is in stream mode.");
-                return;
+                mem.Seek(0, SeekOrigin.Begin);
+                byte[] output = new byte[mem.Length];
+                int ln = mem.Read(output, 0, output.Length);
+                Console.WriteLine(ByteFormatter.FormatBinary(output.AsSpan(0, ln), fmt));
             }
-            byte[] bytes = writer.ToArray();
-            Console.WriteLine(ByteFormatter.FormatBinary(bytes, ByteStringFormat.NewLineAtBeginning));
+            else if(writer.Stream != null)
+                Console.WriteLine("Writer is in stream mode.");
+            else
+            {
+                byte[] bytes = writer.ToArray();
+                Console.WriteLine(ByteFormatter.FormatBinary(bytes, fmt));
+            }
         }
         catch (Exception ex)
         {
@@ -45,6 +63,7 @@ public class ByteEncoderTests
         ByteWriter writer = GetWriter(stream, out Stream? mem);
         try
         {
+            writer.Write(10L);
             ByteWriter.GetWriteMethodDelegate<T>(false).Invoke(writer, value);
             TryPrint(writer);
             ByteReader reader = new ByteReader();
@@ -55,6 +74,8 @@ public class ByteEncoderTests
                 mem.Seek(0, SeekOrigin.Begin);
                 reader.LoadNew(mem);
             }
+
+            Assert.AreEqual(10L, reader.ReadInt64());
             Assert.AreEqual(value, ByteReader.GetReadMethodDelegate<T>(false).Invoke(reader));
             Assert.IsFalse(reader.HasFailed);
         }
@@ -77,6 +98,7 @@ public class ByteEncoderTests
         writer = GetWriter(stream, out mem);
         try
         {
+            writer.Write(10L);
             Delegate d = ByteWriter.CreateWriteMethodDelegate(type, true);
             MethodInfo invMethod = d.GetType().GetMethod("Invoke")!;
             invMethod.Invoke(d, [ writer, value ]);
@@ -89,9 +111,10 @@ public class ByteEncoderTests
                 mem.Seek(0, SeekOrigin.Begin);
                 reader.LoadNew(mem);
             }
+            Assert.AreEqual(10L, reader.ReadInt64());
             Delegate d2 = ByteReader.CreateReadMethodDelegate(type, true);
             invMethod = d2.GetType().GetMethod("Invoke")!;
-            object rtn = invMethod.Invoke(d2, [ reader ]);
+            object? rtn = invMethod.Invoke(d2, [ reader ]);
             Assert.IsNotNull(rtn);
             if (rtn is T t)
             {
@@ -99,7 +122,7 @@ public class ByteEncoderTests
             }
             else if (rtn.GetType() == type)
             {
-                object nullable = Activator.CreateInstance(type, [ value ]);
+                object nullable = Activator.CreateInstance(type, [ value ])!;
                 Assert.AreEqual(nullable, rtn);
             }
             Assert.IsFalse(reader.HasFailed);
@@ -119,6 +142,7 @@ public class ByteEncoderTests
         ByteWriter writer = GetWriter(stream, out Stream? mem);
         try
         {
+            writer.Write(10L);
             ByteWriter.GetWriteMethodDelegate<T[]>(false).Invoke(writer, value);
             TryPrint(writer);
             ByteReader reader = new ByteReader();
@@ -129,6 +153,7 @@ public class ByteEncoderTests
                 mem.Seek(0, SeekOrigin.Begin);
                 reader.LoadNew(mem);
             }
+            Assert.AreEqual(10L, reader.ReadInt64());
             T[] data = ByteReader.GetReadMethodDelegate<T[]>(false).Invoke(reader);
 
             Assert.AreEqual(value.Length, data.Length);
@@ -151,6 +176,7 @@ public class ByteEncoderTests
         writer = GetWriter(stream, out mem);
         try
         {
+            writer.Write(10L);
             ByteWriter.GetWriteMethodDelegate<T[]>(false).Invoke(writer, value);
             TryPrint(writer);
             ByteReader reader = new ByteReader();
@@ -161,6 +187,7 @@ public class ByteEncoderTests
                 mem.Seek(0, SeekOrigin.Begin);
                 reader.LoadNew(mem);
             }
+            Assert.AreEqual(10L, reader.ReadInt64());
             T[] data = ByteReader.GetReadMethodDelegate<T[]>(false).Invoke(reader);
 
             Assert.IsNotNull(data);
@@ -213,6 +240,88 @@ public class ByteEncoderTests
             else reader.LoadNew(writer.ToArray());
 
             bool[] data = reader.ReadBoolArray();
+
+            Assert.AreEqual(value.Length, data.Length);
+            for (int i = 0; i < value.Length; ++i)
+                Assert.AreEqual(value[i], data[i]);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+    }
+
+    [TestMethod]
+    [DataRow(new bool[] { true, false, false, true, false, false, false, true, false, true, true, false }, true)]
+    [DataRow(new bool[] { false, false, true, true, false, true, true, true }, true)]
+    [DataRow(new bool[0], true)]
+    [DataRow(new bool[] { true, false, false, true, false, false, false, true, false, true, true, false }, false)]
+    [DataRow(new bool[] { false, false, true, true, false, true, true, true }, false)]
+    [DataRow(new bool[0], false)]
+    public void TestWriteBitArray(bool[] value, bool stream)
+    {
+        BitArray bitArray = new BitArray(value);
+        ByteWriter writer = GetWriter(stream, out Stream? mem);
+
+        try
+        {
+            writer.Write(bitArray);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem != null)
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+            else reader.LoadNew(writer.ToArray());
+
+            BitArray data = reader.ReadBitArray();
+
+            Assert.AreEqual(value.Length, data.Length);
+            for (int i = 0; i < value.Length; ++i)
+                Assert.AreEqual(value[i], data[i]);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+    }
+
+    [TestMethod]
+    [DataRow(new bool[] { true, false, false, true, false, false, false, true, false, true, true, false }, true)]
+    [DataRow(new bool[] { false, false, true, true, false, true, true, true }, true)]
+    [DataRow(new bool[0], true)]
+    [DataRow(new bool[] { true, false, false, true, false, false, false, true, false, true, true, false }, false)]
+    [DataRow(new bool[] { false, false, true, true, false, true, true, true }, false)]
+    [DataRow(new bool[0], false)]
+    public void TestWriteLongBitArray(bool[] value, bool stream)
+    {
+        BitArray bitArray = new BitArray(value);
+        ByteWriter writer = GetWriter(stream, out Stream? mem);
+
+        try
+        {
+            writer.WriteLong(bitArray);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem != null)
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+            else reader.LoadNew(writer.ToArray());
+
+            BitArray data = reader.ReadLongBitArray();
 
             Assert.AreEqual(value.Length, data.Length);
             for (int i = 0; i < value.Length; ++i)
@@ -837,14 +946,18 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(DirectionByte.North, true)]
+    [DataRow(DirectionByte.South, true)]
     [DataRow(DirectionByte.North, false)]
+    [DataRow(DirectionByte.South, false)]
     public void TestWriteEnumByte(DirectionByte value, bool stream)
     {
         TestOne(value, stream);
     }
 
     [TestMethod]
+    [DataRow(DirectionShort.North, true)]
     [DataRow(DirectionShort.South, true)]
+    [DataRow(DirectionShort.North, false)]
     [DataRow(DirectionShort.South, false)]
     public void TestWriteEnumShort(DirectionShort value, bool stream)
     {
@@ -852,16 +965,20 @@ public class ByteEncoderTests
     }
 
     [TestMethod]
-    [DataRow(Direction.East, true)]
-    [DataRow(Direction.East, false)]
+    [DataRow(Direction.North, true)]
+    [DataRow(Direction.South, true)]
+    [DataRow(Direction.North, false)]
+    [DataRow(Direction.South, false)]
     public void TestWriteEnumInt(Direction value, bool stream)
     {
         TestOne(value, stream);
     }
 
     [TestMethod]
-    [DataRow(DirectionLong.West, true)]
-    [DataRow(DirectionLong.West, false)]
+    [DataRow(DirectionLong.North, true)]
+    [DataRow(DirectionLong.South, true)]
+    [DataRow(DirectionLong.North, false)]
+    [DataRow(DirectionLong.South, false)]
     public void TestWriteEnumLong(DirectionLong value, bool stream)
     {
         TestOne(value, stream);
@@ -1104,6 +1221,7 @@ public class ByteEncoderTests
     }
 
     [TestMethod]
+    [DataRow(new int[] { 1, 0, 0, 30, 16, 255, 2224, 99248240, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52 }, false, false)]
     [DataRow(new int[] { 1, 0, 0, 30, 16, 255, 2224, int.MaxValue, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52 }, true, true)]
     [DataRow(new int[] { 1, 0, 0, 30, 16, 255, 2224, int.MaxValue, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52 }, true, false)]
     [DataRow(new int[] { 0, 0, 0, 30, 16, 255, 65535, 0, 0, 0, 0, 0, 0, 0, 0, int.MinValue, 0, 12, 15, 64 }, false, false)]
@@ -1226,5 +1344,85 @@ public class ByteEncoderTests
         writer.WriteBlock(new byte[] { 43, 26, 224, 46, 2 });
         
         Assert.IsTrue(11 <= writer.Buffer.Length);
+    }
+    [TestMethod]
+    public void TestNavMethods()
+    {
+        ByteWriter writer = new ByteWriter();
+        DateTime dt = DateTime.Now;
+        writer.Write(dt);
+        writer.Write(10L);
+        writer.Write(20L);
+
+        writer.BackTrack(sizeof(long));
+        writer.Write(30L);
+        writer.Return();
+
+        byte[] data = writer.ToArray();
+
+        ByteReader reader = new ByteReader();
+        reader.LoadNew(data, 0);
+
+        DateTime dt2 = reader.ReadDateTime();
+        long l2 = reader.ReadInt64();
+        long l3 = reader.ReadInt64();
+        Assert.AreEqual(dt, dt2);
+        Assert.AreEqual(30L, l2);
+        Assert.AreEqual(20L, l3);
+    }
+
+    [TestMethod]
+    [DataRow(true)]
+    [DataRow(false)]
+    public void TestComplex(bool stream)
+    {
+        ByteWriter writer = GetWriter(stream, out Stream? mem);
+
+        const long val1 = 30L;
+        decimal[] val2 = [ 3m, 10m, 561.253966m ];
+        DateTime dt = new DateTime(2022, 10, 9);
+
+        const int blockLen = 9951;
+        const byte blockVal = 12;
+
+        writer.Write(val1);
+        writer.Write(val2);
+        writer.Write(dt);
+        writer.WriteBlock(blockVal, blockLen);
+
+        byte[] data;
+        if (!stream)
+            data = writer.ToArray();
+        else
+            data = ((MemoryStream)mem!).ToArray();
+
+        ByteReader reader = new ByteReader();
+        reader.LoadNew(data, 0);
+
+        Assert.AreEqual(val1, reader.ReadInt64());
+        Assert.That.SequenceIsEqual(val2, reader.ReadDecimalArray());
+        Assert.AreEqual(dt, reader.ReadDateTime());
+        
+        byte[] block = new byte[blockLen];
+        Unsafe.InitBlock(ref block[0], blockVal, blockLen);
+        Assert.That.SequenceIsEqual(block, reader.ReadBlock(blockLen));
+    }
+
+    [TestMethod]
+    [DataRow(100_445L, 2)]
+    [DataRow(100_445L, 0)]
+    [DataRow(0L, 0)]
+    [DataRow(-10L, 0)]
+    [DataRow(100_445L, 2)]
+    [DataRow(0L, 2)]
+    [DataRow(-10L, 2)]
+    public void TestCapacity(long capacity, int decimals)
+    {
+        int ct = ByteFormatter.GetCapacityLength(capacity, decimals: decimals);
+
+        Span<char> capacityString = stackalloc char[ct];
+        int ct2 = ByteFormatter.FormatCapacity(capacity, capacityString, decimals: decimals);
+        Assert.AreEqual(ct2, ct);
+        Console.WriteLine(capacityString.ToString());
     }
 }

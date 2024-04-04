@@ -72,6 +72,10 @@ public class ByteWriter
     /// Starting capacity of the buffer.
     /// </summary>
     public int BaseCapacity { get; }
+
+    /// <summary>
+    /// Create a <see cref="ByteWriter"/> with a starting capacity of <paramref name="capacity"/> bytes.
+    /// </summary>
     public ByteWriter(int capacity = 0)
     {
         BaseCapacity = capacity;
@@ -112,6 +116,7 @@ public class ByteWriter
             { typeof(int[]), GetMethod(typeof(int[])) },
             { typeof(uint[]), GetMethod(typeof(uint[])) },
             { typeof(bool[]), GetMethod(typeof(bool[])) },
+            { typeof(BitArray), GetMethod(typeof(BitArray)) },
             { typeof(long[]), GetMethod(typeof(long[])) },
             { typeof(ulong[]), GetMethod(typeof(ulong[])) },
             { typeof(short[]), GetMethod(typeof(short[])) },
@@ -155,6 +160,7 @@ public class ByteWriter
             { typeof(sbyte[]), GetNullableMethod(typeof(sbyte[])) },
             { typeof(int[]), GetNullableMethod(typeof(int[])) },
             { typeof(uint[]), GetNullableMethod(typeof(uint[])) },
+            { typeof(BitArray), GetNullableMethod(typeof(BitArray)) },
             { typeof(bool[]), GetNullableMethod(typeof(bool[])) },
             { typeof(long[]), GetNullableMethod(typeof(long[])) },
             { typeof(ulong[]), GetNullableMethod(typeof(ulong[])) },
@@ -299,18 +305,18 @@ public class ByteWriter
         ExtendBufferIntl(byteCount + _size);
     }
 
-    private void ExtendBufferIntl(int newsize)
+    private void ExtendBufferIntl(int newSize)
     {
-        if (newsize <= _buffer.Length)
+        if (newSize <= _buffer.Length)
             return;
         if (_size == 0)
-            _buffer = new byte[newsize];
+            _buffer = new byte[newSize];
         else
         {
             byte[] old = _buffer;
             int sz2 = old.Length;
             int sz = sz2 + sz2 / 2;
-            if (sz < newsize) sz = newsize;
+            if (sz < newSize) sz = newSize;
             _buffer = new byte[sz];
             System.Buffer.BlockCopy(old, 0, _buffer, 0, _size);
         }
@@ -349,7 +355,7 @@ public class ByteWriter
     /// <summary>
     /// Writes a struct directly as it's laid out in computer memory.
     /// </summary>
-    /// <remarks>Use with caution, may not be consistant with structs that do not have an explicit layout.</remarks>
+    /// <remarks>Use with caution, may not be consistant with structs that do not have an explicit layout. Does not take endianness into account.</remarks>
     public unsafe void WriteStruct<T>(in T value) where T : unmanaged
     {
         if (_streamMode)
@@ -360,7 +366,6 @@ public class ByteWriter
             fixed (byte* ptr = _buffer)
             {
                 *(T*)ptr = value;
-                EndianCheck(ptr, sizeof(T));
             }
             _stream!.Write(_buffer, 0, size);
             _size += size;
@@ -372,7 +377,6 @@ public class ByteWriter
         fixed (byte* ptr = &_buffer[_size])
         {
             *(T*)ptr = value;
-            EndianCheck(ptr, sizeof(T));
         }
         _size = newsize;
     }
@@ -1364,8 +1368,8 @@ public class ByteWriter
         ref readonly Guid guid = ref n[i];
         guid.TryWriteBytes(guidBuffer);
 #else
-        fixed (Guid* guidRef = &n[i])
-            guidRef->TryWriteBytes(guidBuffer);
+        Guid guid = n[i];
+        guid.TryWriteBytes(guidBuffer);
 #endif
         if (IsBigEndian)
         {
@@ -1618,7 +1622,7 @@ public class ByteWriter
         CheckArrayLength(typeof(byte), n.Length, ushort.MaxValue, out int len);
         if (_streamMode)
         {
-            WriteInternal(len);
+            WriteInternal((ushort)len);
             _stream!.Write(n, 0, len);
             _size += len;
             return;
@@ -1650,7 +1654,7 @@ public class ByteWriter
         n = n.Slice(0, len);
         if (_streamMode)
         {
-            WriteInternal(len);
+            WriteInternal((ushort)len);
 #if NETFRAMEWORK
             byte[] arr = n.ToArray();
             _stream!.Write(arr, 0, len);
@@ -1702,7 +1706,7 @@ public class ByteWriter
         if (n == null)
             throw new ArgumentNullException(nameof(n));
 
-        Write(n.AsSpan());
+        WriteLong(n.AsSpan());
     }
 #else
     {
@@ -1716,18 +1720,18 @@ public class ByteWriter
             _size += len;
             return;
         }
-        int newsize = _size + sizeof(ushort) + len;
+        int newsize = _size + sizeof(int) + len;
         if (newsize > _buffer.Length)
             ExtendBufferIntl(newsize);
         unsafe
         {
             fixed (byte* ptr = &_buffer[_size])
             {
-                *(ushort*)ptr = (ushort)len;
-                EndianCheck(ptr, sizeof(ushort));
+                *(int*)ptr = len;
+                EndianCheck(ptr, sizeof(int));
             }
         }
-        System.Buffer.BlockCopy(n, 0, _buffer, _size + sizeof(ushort), len);
+        System.Buffer.BlockCopy(n, 0, _buffer, _size + sizeof(int), len);
         _size = newsize;
     }
 #endif
@@ -1751,17 +1755,17 @@ public class ByteWriter
             _size += len;
             return;
         }
-        int newsize = _size + sizeof(ushort) + len;
+        int newsize = _size + sizeof(int) + len;
         if (newsize > _buffer.Length)
             ExtendBufferIntl(newsize);
 
         fixed (byte* ptr = &_buffer[_size])
         {
-            *(ushort*)ptr = (ushort)len;
-            EndianCheck(ptr, sizeof(ushort));
+            *(int*)ptr = len;
+            EndianCheck(ptr, sizeof(int));
             fixed (byte* srcPtr = n)
             {
-                System.Buffer.MemoryCopy(srcPtr, ptr + sizeof(ushort), len, len);
+                System.Buffer.MemoryCopy(srcPtr, ptr + sizeof(int), len, len);
             }
         }
 
@@ -2070,7 +2074,7 @@ public class ByteWriter
         }
         else
         {
-            size = (len - 1) / 9 + sizeof(ushort);
+            size = (len - 1) / 8 + 1 + sizeof(ushort);
             if (_buffer.Length < size) _buffer = new byte[size];
         }
 
@@ -2090,6 +2094,20 @@ public class ByteWriter
             _stream!.Write(_buffer, 0, size);
             _size += size;
         }
+    }
+
+    /// <summary>
+    /// Write a packed nullable bit array to the buffer with an unsigned 16-bit length header. Each element is represented by one bit.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 65535 elements.</exception>=
+    public void WriteNullable(BitArray? n)
+    {
+        if (n is not null)
+        {
+            Write(true);
+            Write(n);
+        }
+        else Write(false);
     }
 
     /// <summary>
@@ -2190,7 +2208,7 @@ public class ByteWriter
         }
         else
         {
-            size = (len - 1) / 9 + sizeof(int);
+            size = (len - 1) / 8 + 1 + sizeof(int);
             if (_buffer.Length < size) _buffer = new byte[size];
         }
 
@@ -2374,10 +2392,68 @@ public class ByteWriter
     /// </summary>
     /// <remarks>Max length: 65535.</remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 65535 elements.</exception>
-    public void Write(ReadOnlySpan<decimal> n)
+    public unsafe void Write(ReadOnlySpan<decimal> n)
     {
-        // todo
-        WriteInternal(n);
+        const int objSize = 16;
+        CheckArrayLength(typeof(DateTimeOffset), n.Length, ushort.MaxValue, out int len);
+#if NET5_0_OR_GREATER
+        Span<int> bitBuffer = stackalloc int[4];
+#endif
+        if (_streamMode)
+        {
+            int size = sizeof(ushort) + objSize * len;
+            if (_buffer.Length < size)
+                _buffer = new byte[size];
+            fixed (byte* ptr = _buffer)
+            {
+                *(ushort*)ptr = (ushort)len;
+                EndianCheck(ptr, sizeof(ushort));
+                for (int i = 0; i < len; ++i)
+                {
+                    decimal d = n[i];
+#if !NET5_0_OR_GREATER
+                    int[] bitBuffer = decimal.GetBits(d);
+#else
+                    decimal.GetBits(d, bitBuffer);
+#endif
+                    for (int j = 0; j < 4; ++j)
+                    {
+                        int index = sizeof(ushort) + i * objSize + j * 4;
+                        Unsafe.WriteUnaligned(ptr + index, bitBuffer[j]);
+                        if (IsBigEndian)
+                            Reverse(_buffer, index, sizeof(int));
+                    }
+                }
+            }
+            _stream!.Write(_buffer, 0, size);
+            _size += size;
+            return;
+        }
+        int newsize = _size + sizeof(ushort) + objSize * len;
+        if (newsize > _buffer.Length)
+            ExtendBufferIntl(newsize);
+        fixed (byte* ptr = &_buffer[_size])
+        {
+            *(ushort*)ptr = (ushort)len;
+            EndianCheck(ptr, sizeof(ushort));
+            for (int i = 0; i < len; ++i)
+            {
+                decimal d = n[i];
+#if !NET5_0_OR_GREATER
+                int[] bitBuffer = decimal.GetBits(d);
+#else
+                decimal.GetBits(d, bitBuffer);
+#endif
+                for (int j = 0; j < 4; ++j)
+                {
+                    int index = sizeof(ushort) + i * objSize + j * 4;
+                    Unsafe.WriteUnaligned(ptr + index, bitBuffer[j]);
+                    if (IsBigEndian)
+                        Reverse(_buffer, index, sizeof(int));
+                }
+            }
+        }
+        _size = newsize;
     }
 
     /// <summary>
@@ -2629,6 +2705,11 @@ public class ByteWriter
         {
             method = (isNullable ? WriteNullableEnumMethod : WriteEnumMethod)?.MakeGenericMethod(type)
                 ?? throw new MemberAccessException(string.Format(Properties.Localization.AutoEncodeMethodNotFoundCheckReflection, isNullable ? "WriteNullableEnum" : "WriteEnum"));
+        }
+        else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && type.GenericTypeArguments[0].IsEnum)
+        {
+            method = (isNullable ? WriteNullableEnumMethod : WriteEnumMethod)?.MakeGenericMethod(type.GenericTypeArguments[0])
+                     ?? throw new MemberAccessException(string.Format(Properties.Localization.AutoEncodeMethodNotFoundCheckReflection, isNullable ? "WriteNullableEnum" : "WriteEnum"));
         }
         else
         {

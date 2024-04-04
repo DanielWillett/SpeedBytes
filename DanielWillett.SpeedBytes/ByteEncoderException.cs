@@ -15,5 +15,8 @@ public class ByteEncoderException : Exception
     /// <inheritdoc />
     public ByteEncoderException(string message, Exception inner) : base(message, inner) { }
     /// <inheritdoc />
+#if NET8_0_OR_GREATER
+    [Obsolete]
+#endif
     protected ByteEncoderException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }

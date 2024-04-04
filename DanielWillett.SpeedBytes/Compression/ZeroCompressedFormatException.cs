@@ -14,5 +14,8 @@ public class ZeroCompressedFormatException : ByteEncoderException
     /// <inheritdoc />
     public ZeroCompressedFormatException(string message, Exception inner) : base(message, inner) { }
     /// <inheritdoc />
+#if NET8_0_OR_GREATER
+    [Obsolete]
+#endif
     protected ZeroCompressedFormatException(SerializationInfo info, StreamingContext context) : base(info, context) { }
 }

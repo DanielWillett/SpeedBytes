@@ -352,13 +352,6 @@ public class ByteReader
         _position = bytes.Offset;
         _hasFailed = false;
     }
-    private static unsafe void Reverse(byte* litEndStrt, int size)
-    {
-        byte* stack = stackalloc byte[size];
-        Unsafe.CopyBlock(stack, litEndStrt, (uint)size);
-        for (int i = 0; i < size; i++)
-            litEndStrt[i] = stack[size - i - 1];
-    }
     private static unsafe void Reverse(byte* litEndStrt, byte* stack, int size)
     {
         Unsafe.CopyBlock(stack, litEndStrt, (uint)size);
@@ -369,13 +362,6 @@ public class ByteReader
     {
         for (int i = 0; i < size; i++)
             stack[size - i - 1] = buffer[index +i];
-    }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe void EndianCheck(byte* litEndStrt, int size)
-    {
-        if (IsBigEndian && size > 1)
-            Reverse(litEndStrt, size);
     }
 
     private unsafe T Read<T>() where T : unmanaged
@@ -397,7 +383,7 @@ public class ByteReader
         _index += size;
         return rtn;
     }
-    private unsafe T ReadFromBuffer<T>(byte[] buffer, int index) where T : unmanaged
+    private static unsafe T ReadFromBuffer<T>(byte[] buffer, int index) where T : unmanaged
     {
         T rtn;
         int size = sizeof(T);
@@ -414,7 +400,7 @@ public class ByteReader
 
         return rtn;
     }
-    private unsafe T ReadFromBuffer<T>(byte* bufferPtr) where T : unmanaged
+    private static unsafe T ReadFromBuffer<T>(byte* bufferPtr) where T : unmanaged
     {
         T rtn;
         int size = sizeof(T);
@@ -514,8 +500,10 @@ public class ByteReader
         if (_streamMode)
         {
             int length;
+#if NETFRAMEWORK
             int bytesLeft;
             byte[] tempBuffer;
+#endif
             if (_buffer is { Length: > 0 })
             {
                 if (_length - _index >= buffer.Length)
@@ -526,7 +514,7 @@ public class ByteReader
                 }
 
                 int offset = _length - _index;
-                Unsafe.CopyBlock(ref buffer[0], ref _buffer[_index], (uint)buffer.Length);
+                Unsafe.CopyBlock(ref buffer[0], ref _buffer[_index], (uint)offset);
                 _index = _length;
                 _position += offset;
 #if NETFRAMEWORK
@@ -588,50 +576,76 @@ public class ByteReader
     }
 
     /// <summary>
-    /// Reads a byte array of length <paramref name="length"/>, without reading a length. Consider using <see cref="ReadBlockTo"/> instead.
+    /// Reads <paramref name="blockSize"/> bytes into <paramref name="block"/> starting at <paramref name="blockOffset"/>.
     /// </summary>
-    public byte[] ReadBlock(int length)
+    public bool ReadBlockTo(byte[] block, int blockOffset = 0, int blockSize = -1)
     {
+        if (block == null)
+            throw new ArgumentNullException(nameof(block));
+        if (blockSize == 0)
+            return true;
+        if (blockOffset < 0)
+            blockOffset = 0;
+        if (blockSize < 0)
+            blockSize = block.Length - blockOffset;
+        if (blockOffset >= block.Length)
+            throw new ArgumentOutOfRangeException(nameof(blockOffset));
+        if (blockOffset + blockSize > block.Length)
+            throw new ArgumentOutOfRangeException(nameof(blockSize));
         if (_streamMode)
         {
-            byte[] output = new byte[length];
+            int length;
             if (_buffer is { Length: > 0 })
             {
-                if (_buffer.Length - _index >= length)
+                if (_length - _index >= block.Length)
                 {
-                    Buffer.BlockCopy(_buffer, _index, output, 0, length);
-                    _index += length;
-                    return output;
+                    Buffer.BlockCopy(_buffer, _index, block, blockOffset, blockSize);
+                    _index += block.Length;
+                    return true;
                 }
 
                 int offset = _length - _index;
-                _index = _buffer.Length;
-                Buffer.BlockCopy(_buffer, _index, output, 0, offset);
-                length = Stream!.Read(output, offset, length - offset);
+                Buffer.BlockCopy(_buffer, _index, block, blockOffset, offset);
+                _index = _length;
+                _position += offset;
+                length = Stream!.Read(block, offset + blockOffset, blockSize - offset);
                 _position += length;
-                if (length < output.Length)
-                    Overflow(typeof(byte[]), length);
+                if (length + offset >= blockSize)
+                    return true;
 
-                return output;
+                Overflow(typeof(byte[]), length);
+                return false;
             }
 
-            length = Stream!.Read(output, 0, length);
+            length = Stream!.Read(block, blockOffset, blockSize);
             _position += length;
-            if (length < output.Length)
-                Overflow(typeof(byte[]), length);
-            
-            return output;
+            if (length >= blockSize)
+                return true;
+
+            Overflow(typeof(byte[]), blockSize);
+            return false;
         }
 
-        if (!EnsureMoreLength(length))
+        if (!EnsureMoreLength(blockSize))
         {
-            Overflow(typeof(byte[]), length);
-            return Array.Empty<byte>();
+            Overflow(typeof(byte[]), blockSize);
+            Unsafe.InitBlock(ref block[blockOffset], 0, (uint)blockSize);
+            return false;
         }
-        byte[] rtn = new byte[length];
-        Buffer.BlockCopy(_buffer!, _index, rtn, 0, length);
-        _index += length;
-        return rtn;
+
+        Buffer.BlockCopy(_buffer!, _index, block, blockOffset, blockSize);
+        _index += blockSize;
+        return true;
+    }
+
+    /// <summary>
+    /// Reads a byte array of length <paramref name="length"/>, without reading a length. Consider using <see cref="ReadBlockTo(byte[], int, int)"/> or <see cref="ReadBlockTo(Span{byte})"/> instead.
+    /// </summary>
+    public byte[] ReadBlock(int length)
+    {
+        byte[] block = new byte[length];
+        ReadBlockTo(block, 0, length);
+        return block;
     }
 
     /// <summary>
@@ -1323,7 +1337,7 @@ public class ByteReader
     /// <summary>
     /// Reads a <see cref="Guid"/> from the buffer.
     /// </summary>
-    public unsafe Guid ReadGuid()
+    public Guid ReadGuid()
     {
         if (!EnsureMoreLength(GuidSize))
         {
@@ -1643,7 +1657,45 @@ public class ByteReader
         int blen = (int)Math.Ceiling(len / 8d);
         if (!EnsureMoreLength(blen))
         {
-            Overflow(typeof(bool[]), blen);
+            Overflow(typeof(BitArray), blen);
+            return new BitArray(0);
+        }
+
+        BitArray rtn = new BitArray(len);
+        fixed (byte* ptr = &_buffer![_index])
+        {
+            byte* ptr2 = ptr;
+            byte current = *ptr2;
+            for (int i = 0; i < len; i++)
+            {
+                byte mod = (byte)(i % 8);
+                if (mod == 0 & i != 0)
+                {
+                    ptr2++;
+                    current = *ptr2;
+                }
+                rtn[i] = (1 & (current >> mod)) == 1;
+            }
+        }
+
+        _index += blen;
+        return rtn;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="BitArray"/> and its length (as a Int32).
+    /// </summary>
+    /// <remarks>Compresses into bits.</remarks>
+    public unsafe BitArray ReadLongBitArray()
+    {
+        int len = ReadInt32();
+        if (len < 1)
+            return new BitArray(0);
+
+        int blen = (int)Math.Ceiling(len / 8d);
+        if (!EnsureMoreLength(blen))
+        {
+            Overflow(typeof(BitArray), blen);
             return new BitArray(0);
         }
 
@@ -2056,6 +2108,11 @@ public class ByteReader
         if (type.IsEnum)
         {
             method = (isNullable ? ReadNullableEnumMethod : ReadEnumMethod)?.MakeGenericMethod(type)
+                     ?? throw new MemberAccessException(string.Format(Properties.Localization.AutoEncodeMethodNotFoundCheckReflection, isNullable ? "ReadNullableEnum" : "ReadEnum"));
+        }
+        else if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) && type.GenericTypeArguments[0].IsEnum)
+        {
+            method = (isNullable ? ReadNullableEnumMethod : ReadEnumMethod)?.MakeGenericMethod(type.GenericTypeArguments[0])
                      ?? throw new MemberAccessException(string.Format(Properties.Localization.AutoEncodeMethodNotFoundCheckReflection, isNullable ? "ReadNullableEnum" : "ReadEnum"));
         }
         else
