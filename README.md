@@ -206,7 +206,7 @@ using DanielWillett.SpeedBytes.Compression;
 int[] array = [ 1, 0, 0, 30, 16, 255, 2224, 99248240, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52 ];
 
 ByteWriter writer = new ByteWriter();
-writer.WriteZeroCompressed(array, array);
+writer.WriteZeroCompressed(array);
 
 /* resulting data (44 bytes for 19 int32s instead of 78):
 
