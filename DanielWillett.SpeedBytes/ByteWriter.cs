@@ -7,17 +7,16 @@ using System.Text;
 namespace DanielWillett.SpeedBytes;
 
 /// <summary>
-/// Fast encoding to a byte array to data. Also works with <see cref="System.IO.Stream"/>s.
+/// Fast encoding to a byte array of data. Also works with <see cref="System.IO.Stream"/>s.
 /// </summary>
 public class ByteWriter
 {
+    private const int GuidSize = 16;
     private static readonly bool IsBigEndian = !BitConverter.IsLittleEndian;
     private static Dictionary<Type, MethodInfo>? _nonNullableWriters;
     private static Dictionary<Type, MethodInfo>? _nullableWriters;
-    private static readonly MethodInfo WriteEnumMethod = typeof(ByteWriter).GetMethod(nameof(WriteEnum), BindingFlags.Instance | BindingFlags.NonPublic)
-                                                            ?? throw new MemberAccessException("Unable to find write enum method.");
-    private static readonly MethodInfo WriteNullableEnumMethod = typeof(ByteWriter).GetMethod(nameof(WriteNullableEnum), BindingFlags.Instance | BindingFlags.NonPublic)
-                                                                 ?? throw new MemberAccessException("Unable to find write nullable enum method.");
+    private static readonly MethodInfo? WriteEnumMethod = typeof(ByteWriter).GetMethod(nameof(WriteEnum), BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly MethodInfo? WriteNullableEnumMethod = typeof(ByteWriter).GetMethod(nameof(WriteNullableEnum), BindingFlags.Instance | BindingFlags.NonPublic);
     private int _size;
     private int _maxSize;
     private byte[] _buffer;
@@ -25,7 +24,7 @@ public class ByteWriter
     private Stream? _stream;
 
     /// <summary>
-    /// Event called for logging messages. Defaults to Console.WriteLine.
+    /// Event called for logging messages. Defaults to <see cref="Console.WriteLine(string)"/>.
     /// </summary>
     public event Action<string>? OnLog;
 
@@ -73,7 +72,7 @@ public class ByteWriter
     /// Starting capacity of the buffer.
     /// </summary>
     public int BaseCapacity { get; }
-    internal ByteWriter(int capacity = 0)
+    public ByteWriter(int capacity = 0)
     {
         BaseCapacity = capacity;
         _buffer = BaseCapacity < 1 ? Array.Empty<byte>() : new byte[BaseCapacity];
@@ -96,15 +95,15 @@ public class ByteWriter
             { typeof(double), GetMethod(typeof(double)) },
             { typeof(char), GetMethod(typeof(char)) },
             { typeof(string), GetMethod(typeof(string)) },
+#if NET5_0_OR_GREATER
+            { typeof(Half), GetMethod(typeof(Half)) },
+#endif
             { typeof(Type), GetMethod(typeof(Type)) },
             { typeof(Type[]), GetMethod(typeof(Type[])) },
             { typeof(DateTime), GetMethod(typeof(DateTime)) },
             { typeof(DateTimeOffset), GetMethod(typeof(DateTimeOffset)) },
             { typeof(TimeSpan), GetMethod(typeof(TimeSpan)) },
             { typeof(Guid), GetMethod(typeof(Guid)) },
-#if NET5_0_OR_GREATER
-            { typeof(Half), GetMethod(typeof(Half)) },
-#endif
             { typeof(Guid[]), GetMethod(typeof(Guid[])) },
             { typeof(DateTime[]), GetMethod(typeof(DateTime[])) },
             { typeof(DateTimeOffset[]), GetMethod(typeof(DateTimeOffset[])) },
@@ -171,10 +170,18 @@ public class ByteWriter
         return;
 
         MethodInfo GetMethod(Type writeType) => typeof(ByteWriter).GetMethod("Write", BindingFlags.Instance | BindingFlags.Public, null, [ writeType ], null)
-                                                ?? throw new MemberAccessException("Unable to find write method for " + writeType.Name + ".");
+                                                ?? throw new MemberAccessException(string.Format(Properties.Localization.AutoEncodeMethodNotFoundCheckReflection, "Write(" + writeType.Name + " n)"));
 
         MethodInfo GetNullableMethod(Type writeType) => typeof(ByteWriter).GetMethod("WriteNullable", BindingFlags.Instance | BindingFlags.Public, null, [ writeType ], null)
-                                                        ?? throw new MemberAccessException("Unable to find nullable write method for " + writeType.Name + ".");
+                                                        ?? throw new MemberAccessException(string.Format(Properties.Localization.AutoEncodeMethodNotFoundCheckReflection, 
+                                                           "WriteNullable(" + (writeType.IsGenericType ? writeType.GenericTypeArguments[0] : writeType).Name + "? n)"));
+    }
+    internal void Log(string msg)
+    {
+        if (OnLog == null)
+            Console.WriteLine(msg);
+        else
+            OnLog.Invoke(msg);
     }
     internal static void AddWriterMethod<T>(Writer<T> reader)
     {
@@ -224,16 +231,13 @@ public class ByteWriter
                 break;
         }
 
-        if (OnLog == null)
-            return;
-
-        OnLog.Invoke(string.Format(
+        Log(string.Format(
             Properties.Localization.ArrayTooLongToWrite,
             type.Name,
             inputLength,
             maxLength
         ));
-        OnLog.Invoke(new StackTrace(1).ToString());
+        Log(new StackTrace(1).ToString());
     }
 
     /// <summary>
@@ -243,7 +247,8 @@ public class ByteWriter
     public byte[] ToArray()
     {
         if (_streamMode)
-            throw new NotSupportedException("Exporting to an array is not supported in stream mode.");
+            throw new NotSupportedException(Properties.Localization.ByteWriterToArrayStreamModeNotSupported);
+
         byte[] rtn = new byte[_size];
         System.Buffer.BlockCopy(_buffer, 0, rtn, 0, _size);
         return rtn;
@@ -256,7 +261,7 @@ public class ByteWriter
     public ArraySegment<byte> ToArraySegmentAndFlush()
     {
         if (_streamMode)
-            throw new NotSupportedException("Exporting to an array segment is not supported in stream mode.");
+            throw new NotSupportedException(Properties.Localization.ByteWriterToArraySegmentStreamModeNotSupported);
 
         ArraySegment<byte> segment = new ArraySegment<byte>(_buffer, 0, _size);
         _buffer = Array.Empty<byte>();
@@ -271,24 +276,29 @@ public class ByteWriter
     public ArraySegment<byte> ToArraySegmentAndDontFlush()
     {
         if (_streamMode)
-            throw new NotSupportedException("Exporting to an array segment is not supported in stream mode.");
+            throw new NotSupportedException(Properties.Localization.ByteWriterToArraySegmentStreamModeNotSupported);
 
         return new ArraySegment<byte>(_buffer, 0, _size);
     }
+
     /// <exception cref="NotSupportedException">Not supported in stream mode.</exception>
     public void ExtendBuffer(int newsize)
     {
         if (_streamMode)
-            throw new NotSupportedException("Resizing the buffer is not supported in stream mode.");
+            throw new NotSupportedException(Properties.Localization.ByteWriterExtendBufferStreamModeNotSupported);
+
         ExtendBufferIntl(newsize);
     }
+
     /// <exception cref="NotSupportedException">Not supported in stream mode.</exception>
     public void ExtendBufferFor(int byteCount)
     {
         if (_streamMode)
-            throw new NotSupportedException("Resizing the buffer is not supported in stream mode.");
+            throw new NotSupportedException(Properties.Localization.ByteWriterExtendBufferStreamModeNotSupported);
+
         ExtendBufferIntl(byteCount + _size);
     }
+
     private void ExtendBufferIntl(int newsize)
     {
         if (newsize <= _buffer.Length)
@@ -310,7 +320,7 @@ public class ByteWriter
     public void BackTrack(int position)
     {
         if (_streamMode)
-            throw new NotSupportedException("BackTrack and Return are not supported in stream mode.");
+            throw new NotSupportedException(Properties.Localization.ByteWriterNavMethodsStreamModeNotSupported);
         if (position < 0)
             position = 0;
         if (position > _size)
@@ -321,13 +331,15 @@ public class ByteWriter
         _maxSize = _size;
         _size = position;
     }
+
     /// <exception cref="NotSupportedException">Not supported in stream mode.</exception>
+    /// <exception cref="InvalidOperationException">You must call <see cref="BackTrack"/> before calling <see cref="Return"/>.</exception>
     public void Return()
     {
         if (_streamMode)
-            throw new NotSupportedException("BackTrack and Return are not supported in stream mode.");
+            throw new NotSupportedException(Properties.Localization.ByteWriterNavMethodsStreamModeNotSupported);
         if (_maxSize == 0)
-            throw new InvalidOperationException("You must call BackTrack before calling Return.");
+            throw new InvalidOperationException(Properties.Localization.ByteWriterReturnNotNavigating);
 
         if (_size < _maxSize)
             _size = _maxSize;
@@ -415,8 +427,14 @@ public class ByteWriter
     private static unsafe void Reverse(byte* litEndStrt, int size)
     {
         byte* stack = stackalloc byte[size];
-        for (int i = 0; i < size; ++i)
-            stack[i] = litEndStrt[i];
+        Unsafe.CopyBlock(stack, litEndStrt, (uint)size);
+        for (int i = 0; i < size; i++)
+            litEndStrt[i] = stack[size - i - 1];
+    }
+    private static void Reverse(byte[] litEndStrt, int index, int size)
+    {
+        Span<byte> stack = stackalloc byte[size];
+        Unsafe.CopyBlock(ref stack[0], ref litEndStrt[index], (uint)size);
         for (int i = 0; i < size; i++)
             litEndStrt[i] = stack[size - i - 1];
     }
@@ -732,6 +750,7 @@ public class ByteWriter
         }
         else Write(false);
     }
+
 #if NET5_0_OR_GREATER
 
     /// <summary>
@@ -756,7 +775,42 @@ public class ByteWriter
     /// <summary>
     /// Write a 128-bit floating point value to the buffer.
     /// </summary>
-    public void Write(decimal n) => WriteInternal(n);
+    public void Write(decimal n)
+    {
+#if NET5_0_OR_GREATER
+        Span<int> bits = stackalloc int[4];
+        decimal.GetBits(n, bits);
+#else
+        int[] bits = decimal.GetBits(n);
+#endif
+        const int size = 16;
+        if (_streamMode)
+        {
+            if (_buffer.Length < size)
+                _buffer = new byte[size];
+
+            for (int i = 0; i < 4; ++i)
+            {
+                Unsafe.WriteUnaligned(ref _buffer[i * 4], bits[i]);
+                if (IsBigEndian)
+                    Reverse(_buffer, i * 4, sizeof(int));
+            }
+
+            _stream!.Write(_buffer, 0, size);
+            _size += size;
+            return;
+        }
+        int newsize = _size + size;
+        if (newsize > _buffer.Length)
+            ExtendBufferIntl(newsize);
+        for (int i = 0; i < 4; ++i)
+        {
+            Unsafe.WriteUnaligned(ref _buffer[_size + i * 4], bits[i]);
+            if (IsBigEndian)
+                Reverse(_buffer, _size + i * 4, sizeof(int));
+        }
+        _size = newsize;
+    }
 
     /// <summary>
     /// Write a nullable 128-bit floating point value to the buffer.
@@ -766,7 +820,7 @@ public class ByteWriter
         if (n.HasValue)
         {
             Write(true);
-            WriteInternal(n.Value);
+            Write(n.Value);
         }
         else Write(false);
     }
@@ -1134,7 +1188,7 @@ public class ByteWriter
     /// </summary>
     public void Write(DateTimeOffset n)
     {
-        Write(n.DateTime);
+        WriteInternal(n.DateTime.ToBinary());
         Write((short)Math.Round(n.Offset.TotalMinutes));
     }
 
@@ -1172,7 +1226,35 @@ public class ByteWriter
     /// <summary>
     /// Write a <see cref="Guid"/> to the buffer.
     /// </summary>
-    public void Write(Guid n) => WriteInternal(n);
+    public void Write(Guid n)
+    {
+#if NETFRAMEWORK
+        byte[] buffer = n.ToByteArray();
+#else
+        Span<byte> buffer = stackalloc byte[GuidSize];
+        n.TryWriteBytes(buffer);
+#endif
+        if (IsBigEndian)
+        {
+            byte temp = buffer[0];
+            buffer[0] = buffer[3];
+            buffer[3] = temp;
+
+            temp = buffer[1];
+            buffer[1] = buffer[2];
+            buffer[2] = temp;
+
+            temp = buffer[4];
+            buffer[4] = buffer[5];
+            buffer[5] = temp;
+
+            temp = buffer[6];
+            buffer[6] = buffer[7];
+            buffer[7] = temp;
+        }
+
+        WriteBlock(buffer);
+    }
 
     /// <summary>
     /// Write a nullable <see cref="Guid"/> to the buffer.
@@ -1182,7 +1264,7 @@ public class ByteWriter
         if (n.HasValue)
         {
             Write(true);
-            WriteInternal(n.Value);
+            Write(n.Value);
         }
         else Write(false);
     }
@@ -1193,14 +1275,120 @@ public class ByteWriter
     /// <remarks>Max length: 65535.</remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 65535 elements.</exception>
     /// <exception cref="ArgumentNullException">The given array is null.</exception>
-    public void Write(Guid[] n) => WriteInternal(n);
+    public void Write(Guid[] n)
+    {
+        if (n == null)
+            throw new ArgumentNullException(nameof(n));
+
+        Write(n.AsSpan());
+    }
 
     /// <summary>
     /// Write a <see cref="Guid"/> span to the buffer with an unsigned 16-bit length header.
     /// </summary>
     /// <remarks>Max length: 65535.</remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 65535 elements.</exception>
-    public void Write(ReadOnlySpan<Guid> n) => WriteInternal(n);
+    public unsafe void Write(ReadOnlySpan<Guid> n)
+    {
+        CheckArrayLength(typeof(Guid), n.Length, ushort.MaxValue, out int len);
+#if !NETFRAMEWORK
+        Span<byte> guidBuffer = stackalloc byte[GuidSize];
+#endif
+        if (_streamMode)
+        {
+            int size = sizeof(ushort) + GuidSize * len;
+            if (_buffer.Length < size)
+                _buffer = new byte[size];
+            fixed (byte* ptr = _buffer)
+            {
+                *(ushort*)ptr = (ushort)len;
+                EndianCheck(ptr, sizeof(ushort));
+                for (int i = 0; i < len; ++i)
+                {
+#if NETFRAMEWORK
+                    byte[] guidBuffer =
+#endif
+                    WriteGuid(n, i
+#if !NETFRAMEWORK
+                        , guidBuffer
+#endif
+                    );
+                    ref byte ptr2 = ref Unsafe.AsRef<byte>(ptr + sizeof(ushort) + i * GuidSize);
+                    Unsafe.CopyBlock(ref ptr2, ref guidBuffer[0], GuidSize);
+                }
+            }
+            _stream!.Write(_buffer, 0, size);
+            _size += size;
+            return;
+        }
+        int newsize = _size + sizeof(ushort) + GuidSize * len;
+        if (newsize > _buffer.Length)
+            ExtendBufferIntl(newsize);
+        fixed (byte* ptr = &_buffer[_size])
+        {
+            *(ushort*)ptr = (ushort)len;
+            EndianCheck(ptr, sizeof(ushort));
+            for (int i = 0; i < len; ++i)
+            {
+#if NETFRAMEWORK
+                byte[] guidBuffer =
+#endif
+                    WriteGuid(n, i
+#if !NETFRAMEWORK
+                        , guidBuffer
+#endif
+                    );
+                ref byte ptr2 = ref Unsafe.AsRef<byte>(ptr + sizeof(ushort) + i * GuidSize);
+                Unsafe.CopyBlock(ref ptr2, ref guidBuffer[0], GuidSize);
+            }
+        }
+        _size = newsize;
+    }
+
+    // ReSharper disable once RedundantUnsafeContext
+    private unsafe
+#if NETFRAMEWORK
+        byte[]
+#else
+        void
+#endif
+        WriteGuid(ReadOnlySpan<Guid> n, int i
+#if !NETFRAMEWORK
+        , Span<byte> guidBuffer
+#endif
+    )
+    {
+#if NETFRAMEWORK
+        byte[] guidBuffer = n[i].ToByteArray();
+#elif NET8_0_OR_GREATER
+        ref readonly Guid guid = ref n[i];
+        guid.TryWriteBytes(guidBuffer);
+#else
+        fixed (Guid* guidRef = &n[i])
+            guidRef->TryWriteBytes(guidBuffer);
+#endif
+        if (IsBigEndian)
+        {
+            byte temp = guidBuffer[0];
+            guidBuffer[0] = guidBuffer[3];
+            guidBuffer[3] = temp;
+
+            temp = guidBuffer[1];
+            guidBuffer[1] = guidBuffer[2];
+            guidBuffer[2] = temp;
+
+            temp = guidBuffer[4];
+            guidBuffer[4] = guidBuffer[5];
+            guidBuffer[5] = temp;
+
+            temp = guidBuffer[6];
+            guidBuffer[6] = guidBuffer[7];
+            guidBuffer[7] = temp;
+        }
+#if NETFRAMEWORK
+        return guidBuffer;
+#endif
+    }
 
     /// <summary>
     /// Write a nullable <see cref="Guid"/> array to the buffer with an unsigned 16-bit length header.
@@ -1212,7 +1400,7 @@ public class ByteWriter
         if (n is not null)
         {
             Write(true);
-            WriteInternal<Guid>(n.AsSpan());
+            Write(n.AsSpan());
         }
         else Write(false);
     }
@@ -2173,14 +2361,24 @@ public class ByteWriter
     /// <remarks>Max length: 65535.</remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 65535 elements.</exception>
     /// <exception cref="ArgumentNullException">The given array is null.</exception>
-    public void Write(decimal[] n) => WriteInternal(n);
+    public void Write(decimal[] n)
+    {
+        if (n == null)
+            throw new ArgumentNullException(nameof(n));
+
+        Write(n.AsSpan());
+    }
 
     /// <summary>
     /// Write a 128-bit floating point span to the buffer with an unsigned 16-bit length header.
     /// </summary>
     /// <remarks>Max length: 65535.</remarks>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 65535 elements.</exception>
-    public void Write(ReadOnlySpan<decimal> n) => WriteInternal(n);
+    public void Write(ReadOnlySpan<decimal> n)
+    {
+        // todo
+        WriteInternal(n);
+    }
 
     /// <summary>
     /// Write a nullable 128-bit floating point array to the buffer with an unsigned 16-bit length header.
@@ -2283,16 +2481,13 @@ public class ByteWriter
                         )
                 };
 
-                if (OnLog != null)
-                {
-                    OnLog.Invoke(string.Format(
-                        Properties.Localization.ArrayTooLongToWrite,
-                        type,
-                        ct,
-                        ushort.MaxValue
-                    ));
-                    OnLog.Invoke(new StackTrace().ToString());
-                }
+                Log(string.Format(
+                    Properties.Localization.ArrayTooLongToWrite,
+                    type,
+                    ct,
+                    ushort.MaxValue
+                ));
+                Log(new StackTrace().ToString());
 
                 ct = newCt;
             }
@@ -2303,7 +2498,6 @@ public class ByteWriter
         }
 
         WriteInternal((ushort)len);
-        WriteInternal((ushort)maxLen);
 #if NETFRAMEWORK
         byte[] charBuffer = new byte[maxLen];
 #else
@@ -2367,24 +2561,6 @@ public class ByteWriter
         else Write(false);
     }
 
-
-    /// <summary>
-    /// Throw an error if <typeparamref name="T"/> is not auto-writable.
-    /// </summary>
-    /// <exception cref="AutoEncodeTypeNotFoundException"><typeparamref name="T"/> is not auto-writable.</exception>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    protected static void VerifyType<T>() => VerifyType(typeof(T));
-
-    /// <summary>
-    /// Throw an error if <paramref name="type"/> is not auto-writable.
-    /// </summary>
-    /// <exception cref="AutoEncodeTypeNotFoundException"><paramref name="type"/> is not auto-writable.</exception>
-    protected static void VerifyType(Type type)
-    {
-        if (!ByteEncoders.IsValidAutoType(type))
-            throw new AutoEncodeTypeNotFoundException(type);
-    }
-
     /// <summary>
     /// Creates or gets a cached delegate to write <typeparamref name="T"/> to a <see cref="ByteWriter"/>.
     /// </summary>
@@ -2412,15 +2588,18 @@ public class ByteWriter
     /// <returns>A delegate of type <see cref="Writer{T}"/>.</returns>
     /// <remarks>If <paramref name="isNullable"/> is true, nullable value type structs should be indicated with <paramref name="type"/> being the nullable type.</remarks>
     /// <param name="isNullable">Should the type be considered nullable?</param>
-    /// <exception cref="ArgumentNullException"></exception>
+    /// <exception cref="ArgumentNullException"/>
     /// <exception cref="AutoEncodeTypeNotFoundException"><paramref name="type"/> (marked nullable by <paramref name="isNullable"/>) is not auto-writable.</exception>
     /// <exception cref="ByteEncoderException">There was an error trying to create a auto-write method.</exception>
     public static Delegate CreateWriteMethodDelegate(Type type, bool isNullable = false)
     {
-        if (type == null) throw new ArgumentNullException(nameof(type));
+        if (type == null)
+            throw new ArgumentNullException(nameof(type));
+
         MethodInfo? method = GetWriteMethod(type, isNullable);
         if (method == null)
             throw new AutoEncodeTypeNotFoundException(type);
+
         try
         {
             return method.CreateDelegate(typeof(Writer<>).MakeGenericType(type));
@@ -2431,20 +2610,25 @@ public class ByteWriter
         }
     }
 
+    internal static Writer<T1> CreateWriteMethodDelegate<T1>(bool isNullable = false) => (Writer<T1>)CreateWriteMethodDelegate(typeof(T1), isNullable);
+
     /// <summary>
     /// Get the <see cref="MethodInfo"/> of a method to write <paramref name="type"/> to a <see cref="ByteWriter"/>, or <see langword="null"/> if it's not found.
     /// </summary>
     /// <remarks>If <paramref name="isNullable"/> is true, nullable value type structs should be indicated with <paramref name="type"/> being the nullable type.</remarks>
     /// <param name="isNullable">Should the type be considered nullable?</param>
-    /// <exception cref="ArgumentNullException"></exception>
-    /// <exception cref="AutoEncodeTypeNotFoundException"><paramref name="type"/> (marked nullable by <paramref name="isNullable"/>) is not auto-writable.</exception>
+    /// <exception cref="ArgumentNullException"/>
     /// <exception cref="ByteEncoderException">There was an error trying to create a auto-write method.</exception>
     public static MethodInfo? GetWriteMethod(Type type, bool isNullable = false)
     {
+        if (type == null)
+            throw new ArgumentNullException(nameof(type));
+
         MethodInfo? method;
         if (type.IsEnum)
         {
-            method = (isNullable ? WriteNullableEnumMethod : WriteEnumMethod).MakeGenericMethod(type);
+            method = (isNullable ? WriteNullableEnumMethod : WriteEnumMethod)?.MakeGenericMethod(type)
+                ?? throw new MemberAccessException(string.Format(Properties.Localization.AutoEncodeMethodNotFoundCheckReflection, isNullable ? "WriteNullableEnum" : "WriteEnum"));
         }
         else
         {
@@ -2465,7 +2649,6 @@ public class ByteWriter
 
         return method;
     }
-    internal static Writer<T1> CreateWriteMethodDelegate<T1>(bool isNullable = false) => (Writer<T1>)CreateWriteMethodDelegate(typeof(T1), isNullable);
 
     /// <summary>
     /// Caches a delegate to write <typeparamref name="T"/> to a <see cref="ByteWriter"/>.
@@ -2484,7 +2667,7 @@ public class ByteWriter
         internal static Writer<T> Writer { get; }
         static WriterHelper()
         {
-            VerifyType<T>();
+            ByteEncoders.ThrowIfNotAutoType<T>();
             Writer = CreateWriteMethodDelegate<T>(isNullable: false);
         }
     }
@@ -2507,7 +2690,7 @@ public class ByteWriter
         internal static Writer<T> Writer { get; }
         static NullableWriterHelper()
         {
-            VerifyType<T>();
+            ByteEncoders.ThrowIfNotAutoType<T>();
             Writer = CreateWriteMethodDelegate<T>(isNullable: true);
         }
     }

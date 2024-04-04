@@ -3,12 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34607.79
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DanielWillett.SpeedBytes", "DanielWillett.SpeedBytes\DanielWillett.SpeedBytes.csproj", "{99B88698-1A39-4186-A4A1-7D614E4B4EE0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DanielWillett.SpeedBytes", "DanielWillett.SpeedBytes\DanielWillett.SpeedBytes.csproj", "{99B88698-1A39-4186-A4A1-7D614E4B4EE0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9A7B8E62-38B7-463E-8052-AC3BDBD69303}"
 	ProjectSection(SolutionItems) = preProject
 		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DanielWillett.SpeedBytes.Tests", "DanielWillett.SpeedBytes.Tests\DanielWillett.SpeedBytes.Tests.csproj", "{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -20,6 +22,10 @@ Global
 		{99B88698-1A39-4186-A4A1-7D614E4B4EE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{99B88698-1A39-4186-A4A1-7D614E4B4EE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{99B88698-1A39-4186-A4A1-7D614E4B4EE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

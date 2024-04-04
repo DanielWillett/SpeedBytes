@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace DanielWillett.SpeedBytes;
@@ -163,6 +164,29 @@ public static class ByteEncoders
         {
             return 0;
         }
+    }
+
+
+    /// <summary>
+    /// Throw an error if <typeparamref name="T"/> is not auto-encodable.
+    /// </summary>
+    /// <exception cref="AutoEncodeTypeNotFoundException"><typeparamref name="T"/> is not auto-encodable.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void ThrowIfNotAutoType<T>()
+    {
+        if (!IsValidAutoType(typeof(T)))
+            throw new AutoEncodeTypeNotFoundException(typeof(T));
+    }
+
+    /// <summary>
+    /// Throw an error if <paramref name="type"/> is not auto-encodable.
+    /// </summary>
+    /// <exception cref="AutoEncodeTypeNotFoundException"><paramref name="type"/> is not auto-encodable.</exception>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void ThrowIfNotAutoType(Type type)
+    {
+        if (!IsValidAutoType(type))
+            throw new AutoEncodeTypeNotFoundException(type);
     }
 }
 

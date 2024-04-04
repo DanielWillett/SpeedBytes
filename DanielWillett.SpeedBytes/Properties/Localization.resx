@@ -120,11 +120,56 @@
   <data name="ArrayTooLongToWrite" xml:space="preserve">
     <value>The given {0} array is too long to be written by the called method ({1} elements). The max length is {2} elements.</value>
   </data>
+  <data name="AutoEncodeMethodNotFoundCheckReflection" xml:space="preserve">
+    <value>Unable to find an internal method with reflection, check that reflection is possible in your environment to use this feature. Member: '{0}'.</value>
+  </data>
   <data name="AutoEncodeTypeNotFoundExceptionWithTypeName" xml:space="preserve">
-    <value>Generic argument {0} is not able to be read/written automatically.</value>
+    <value>Type '{0}' is not able to be read/written automatically.</value>
+  </data>
+  <data name="BinaryStringMustHaveOneBase" xml:space="preserve">
+    <value>Binary string format must have only one of Base10, Base16, ByteCountAbsolute, ByteCountUnits, or NoLogging.</value>
+  </data>
+  <data name="BinaryStringMustHaveOneColumn" xml:space="preserve">
+    <value>Binary string format must have only one of Columns8, Columns16, Columns32, or Columns64.</value>
+  </data>
+  <data name="BinaryStringMustHaveOneFirst" xml:space="preserve">
+    <value>Binary string format must have only one of First8, First16, First32, First64, or First128.</value>
+  </data>
+  <data name="BinaryStringMustHaveOneLast" xml:space="preserve">
+    <value>Binary string format must have only one of Last8, Last16, Last32, Last64, or Last128.</value>
   </data>
   <data name="ByteBufferOverflowException" xml:space="preserve">
     <value>ByteReader tried to read past its buffer.</value>
+  </data>
+  <data name="ByteRadixShouldBeValidBase" xml:space="preserve">
+    <value>Radix should be 16, 10, or 2.</value>
+  </data>
+  <data name="ByteReaderArraySegmentStreamModeNotSupported" xml:space="preserve">
+    <value>You can not get an array segment of the current buffer in stream mode.</value>
+  </data>
+  <data name="ByteReaderNavMethodsStreamModeNotSupported" xml:space="preserve">
+    <value>Goto is not supported in stream mode.</value>
+  </data>
+  <data name="ByteReaderOverflow" xml:space="preserve">
+    <value>Buffer overflow encountered trying to read '{4}' ({0} bytes) from byte {1} of {2} ({3} bytes left).</value>
+  </data>
+  <data name="ByteSizeShouldBeValidBase" xml:space="preserve">
+    <value>Byte size should be 2 (base 16), 3 (base 10), or 8 (base 2).</value>
+  </data>
+  <data name="ByteWriterExtendBufferStreamModeNotSupported" xml:space="preserve">
+    <value>Resizing the buffer is not supported in stream mode.</value>
+  </data>
+  <data name="ByteWriterNavMethodsStreamModeNotSupported" xml:space="preserve">
+    <value>BackTrack and Return are not supported in stream mode.</value>
+  </data>
+  <data name="ByteWriterReturnNotNavigating" xml:space="preserve">
+    <value>You must call BackTrack before calling Return.</value>
+  </data>
+  <data name="ByteWriterToArraySegmentStreamModeNotSupported" xml:space="preserve">
+    <value>Exporting to an array segment is not supported in stream mode.</value>
+  </data>
+  <data name="ByteWriterToArrayStreamModeNotSupported" xml:space="preserve">
+    <value>Exporting to an array is not supported in stream mode.</value>
   </data>
   <data name="CouldNotCreateEncoderMethod" xml:space="preserve">
     <value>There was an error trying to create an auto-encoder method. See inner exception for details.</value>
@@ -137,5 +182,29 @@
   </data>
   <data name="GivenStreamCanNotWrite" xml:space="preserve">
     <value>Stream can not write.</value>
+  </data>
+  <data name="SizeCodeB" xml:space="preserve">
+    <value>B</value>
+  </data>
+  <data name="SizeCodeEiB" xml:space="preserve">
+    <value>EiB</value>
+  </data>
+  <data name="SizeCodeGiB" xml:space="preserve">
+    <value>GiB</value>
+  </data>
+  <data name="SizeCodeKiB" xml:space="preserve">
+    <value>KiB</value>
+  </data>
+  <data name="SizeCodeMiB" xml:space="preserve">
+    <value>MiB</value>
+  </data>
+  <data name="SizeCodePiB" xml:space="preserve">
+    <value>PiB</value>
+  </data>
+  <data name="SizeCodeTiB" xml:space="preserve">
+    <value>TiB</value>
+  </data>
+  <data name="ZeroCompressedFormatException" xml:space="preserve">
+    <value>The given zero-compressed data was invalid or corrupt.</value>
   </data>
 </root>

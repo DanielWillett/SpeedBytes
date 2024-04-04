@@ -1,7 +1,7 @@
 ﻿namespace DanielWillett.SpeedBytes.Compression;
 
 /// <summary>
-/// Extension for the compression of integer arrays which can have many zeros in sequence.
+/// Extension containing methods for <see cref="ByteReader"/> and <see cref="ByteWriter"/> that perform compression of integer arrays which have many zeros in sequence.
 /// </summary>
 public static class ZeroCompressedExtensions
 {
@@ -523,5 +523,333 @@ public static class ZeroCompressedExtensions
             writer.WriteInternal(c);
             --valuesWriting;
         }
+    }
+
+    /// <summary>
+    /// Read a compressed unsigned 8-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static byte[] ReadZeroCompressedUInt8Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<byte>();
+        byte[] output = new byte[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                byte next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadUInt8();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadUInt8();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Read a compressed 8-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static sbyte[] ReadZeroCompressedInt8Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<sbyte>();
+        sbyte[] output = new sbyte[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                sbyte next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadInt8();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadInt8();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Read a compressed unsigned 16-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static ushort[] ReadZeroCompressedUInt16Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<ushort>();
+        ushort[] output = new ushort[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                ushort next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadUInt16();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadUInt16();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Read a compressed 16-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static short[] ReadZeroCompressedInt16Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<short>();
+        short[] output = new short[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                short next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadInt16();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadInt16();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Read a compressed 32-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static int[] ReadZeroCompressedInt32Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<int>();
+        int[] output = new int[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                int next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadInt32();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadInt32();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Read a compressed unsigned 32-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static uint[] ReadZeroCompressedUInt32Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<uint>();
+        uint[] output = new uint[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                uint next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadUInt32();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadUInt32();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Read a compressed unsigned 64-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static ulong[] ReadZeroCompressedUInt64Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<ulong>();
+        ulong[] output = new ulong[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                ulong next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadUInt64();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadUInt64();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
+    }
+
+    /// <summary>
+    /// Read a compressed 64-bit integer array which may have many zeros in sequence.
+    /// </summary>
+    /// <param name="long">Read length as an Int32 instead of UInt16.</param>
+    /// <exception cref="ZeroCompressedFormatException">Data read from a <see cref="ByteReader"/> is invalid.</exception>
+    public static long[] ReadZeroCompressedInt64Array(this ByteReader reader, bool @long = false)
+    {
+        int len = @long ? reader.ReadInt32() : reader.ReadUInt16();
+        if (len == 0) return Array.Empty<long>();
+        long[] output = new long[len];
+        for (int i = 0; i < len; ++i)
+        {
+            byte b = reader.ReadUInt8();
+            if (b == 255)
+            {
+                long next;
+                for (int j = reader.ReadUInt8(); j > 0; --j)
+                {
+                    next = reader.ReadInt64();
+                    if (i < len)
+                        output[i] = next;
+                    else
+                        reader.FailZeroCompressed();
+                    ++i;
+                }
+                next = reader.ReadInt64();
+                if (i < len)
+                    output[i] = next;
+                else
+                    reader.FailZeroCompressed();
+            }
+            else
+            {
+                i += b;
+                if (i >= len)
+                    reader.FailZeroCompressed();
+            }
+        }
+        return output;
     }
 }

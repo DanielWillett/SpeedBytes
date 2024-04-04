@@ -70,11 +70,56 @@ namespace DanielWillett.SpeedBytes.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Generic argument {0} is not able to be read/written automatically..
+        ///   Looks up a localized string similar to Unable to find an internal method with reflection, check that reflection is possible in your environment to use this feature. Member: &apos;{0}&apos;..
+        /// </summary>
+        internal static string AutoEncodeMethodNotFoundCheckReflection {
+            get {
+                return ResourceManager.GetString("AutoEncodeMethodNotFoundCheckReflection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type &apos;{0}&apos; is not able to be read/written automatically..
         /// </summary>
         internal static string AutoEncodeTypeNotFoundExceptionWithTypeName {
             get {
                 return ResourceManager.GetString("AutoEncodeTypeNotFoundExceptionWithTypeName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Binary string format must have only one of Base10, Base16, ByteCountAbsolute, ByteCountUnits, or NoLogging..
+        /// </summary>
+        internal static string BinaryStringMustHaveOneBase {
+            get {
+                return ResourceManager.GetString("BinaryStringMustHaveOneBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Binary string format must have only one of Columns8, Columns16, Columns32, or Columns64..
+        /// </summary>
+        internal static string BinaryStringMustHaveOneColumn {
+            get {
+                return ResourceManager.GetString("BinaryStringMustHaveOneColumn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Binary string format must have only one of First8, First16, First32, First64, or First128..
+        /// </summary>
+        internal static string BinaryStringMustHaveOneFirst {
+            get {
+                return ResourceManager.GetString("BinaryStringMustHaveOneFirst", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Binary string format must have only one of Last8, Last16, Last32, Last64, or Last128..
+        /// </summary>
+        internal static string BinaryStringMustHaveOneLast {
+            get {
+                return ResourceManager.GetString("BinaryStringMustHaveOneLast", resourceCulture);
             }
         }
         
@@ -84,6 +129,96 @@ namespace DanielWillett.SpeedBytes.Properties {
         internal static string ByteBufferOverflowException {
             get {
                 return ResourceManager.GetString("ByteBufferOverflowException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Radix should be 16, 10, or 2..
+        /// </summary>
+        internal static string ByteRadixShouldBeValidBase {
+            get {
+                return ResourceManager.GetString("ByteRadixShouldBeValidBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can not get an array segment of the current buffer in stream mode..
+        /// </summary>
+        internal static string ByteReaderArraySegmentStreamModeNotSupported {
+            get {
+                return ResourceManager.GetString("ByteReaderArraySegmentStreamModeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Goto is not supported in stream mode..
+        /// </summary>
+        internal static string ByteReaderNavMethodsStreamModeNotSupported {
+            get {
+                return ResourceManager.GetString("ByteReaderNavMethodsStreamModeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Buffer overflow encountered trying to read &apos;{4}&apos; ({0} bytes) from byte {1} of {2} ({3} bytes left)..
+        /// </summary>
+        internal static string ByteReaderOverflow {
+            get {
+                return ResourceManager.GetString("ByteReaderOverflow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Byte size should be 2 (base 16), 3 (base 10), or 8 (base 2)..
+        /// </summary>
+        internal static string ByteSizeShouldBeValidBase {
+            get {
+                return ResourceManager.GetString("ByteSizeShouldBeValidBase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Resizing the buffer is not supported in stream mode..
+        /// </summary>
+        internal static string ByteWriterExtendBufferStreamModeNotSupported {
+            get {
+                return ResourceManager.GetString("ByteWriterExtendBufferStreamModeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to BackTrack and Return are not supported in stream mode..
+        /// </summary>
+        internal static string ByteWriterNavMethodsStreamModeNotSupported {
+            get {
+                return ResourceManager.GetString("ByteWriterNavMethodsStreamModeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must call BackTrack before calling Return..
+        /// </summary>
+        internal static string ByteWriterReturnNotNavigating {
+            get {
+                return ResourceManager.GetString("ByteWriterReturnNotNavigating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exporting to an array segment is not supported in stream mode..
+        /// </summary>
+        internal static string ByteWriterToArraySegmentStreamModeNotSupported {
+            get {
+                return ResourceManager.GetString("ByteWriterToArraySegmentStreamModeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exporting to an array is not supported in stream mode..
+        /// </summary>
+        internal static string ByteWriterToArrayStreamModeNotSupported {
+            get {
+                return ResourceManager.GetString("ByteWriterToArrayStreamModeNotSupported", resourceCulture);
             }
         }
         
@@ -120,6 +255,78 @@ namespace DanielWillett.SpeedBytes.Properties {
         internal static string GivenStreamCanNotWrite {
             get {
                 return ResourceManager.GetString("GivenStreamCanNotWrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to B.
+        /// </summary>
+        internal static string SizeCodeB {
+            get {
+                return ResourceManager.GetString("SizeCodeB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EiB.
+        /// </summary>
+        internal static string SizeCodeEiB {
+            get {
+                return ResourceManager.GetString("SizeCodeEiB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to GiB.
+        /// </summary>
+        internal static string SizeCodeGiB {
+            get {
+                return ResourceManager.GetString("SizeCodeGiB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to KiB.
+        /// </summary>
+        internal static string SizeCodeKiB {
+            get {
+                return ResourceManager.GetString("SizeCodeKiB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to MiB.
+        /// </summary>
+        internal static string SizeCodeMiB {
+            get {
+                return ResourceManager.GetString("SizeCodeMiB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PiB.
+        /// </summary>
+        internal static string SizeCodePiB {
+            get {
+                return ResourceManager.GetString("SizeCodePiB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to TiB.
+        /// </summary>
+        internal static string SizeCodeTiB {
+            get {
+                return ResourceManager.GetString("SizeCodeTiB", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given zero-compressed data was invalid or corrupt..
+        /// </summary>
+        internal static string ZeroCompressedFormatException {
+            get {
+                return ResourceManager.GetString("ZeroCompressedFormatException", resourceCulture);
             }
         }
     }
