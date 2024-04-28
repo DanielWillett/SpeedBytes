@@ -930,7 +930,7 @@ public class ByteWriter
         CheckArrayLength(typeof(char), n.Length, ushort.MaxValue, out int charCt);
         if (charCt == 0)
         {
-            Write((byte)0);
+            Write((ushort)0);
             return;
         }
 #if NETFRAMEWORK
@@ -956,7 +956,7 @@ public class ByteWriter
         CheckArrayLength(typeof(char), ct, ushort.MaxValue, out ct);
         if (ct == 0)
         {
-            Write((byte)0);
+            Write((ushort)0);
             return;
         }
 

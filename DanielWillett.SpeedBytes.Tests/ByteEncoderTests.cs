@@ -418,8 +418,10 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow(new byte[] { 4, 0, 32, 8, 12 }, false)]
     [DataRow(new byte[] { 7, 243, 3, 246, 46 }, false)]
-    [DataRow(new byte[] { 7, 243, 3, 246, 46 }, true)]
     [DataRow(new byte[0], false)]
+    [DataRow(new byte[] { 4, 0, 32, 8, 12 }, true)]
+    [DataRow(new byte[] { 7, 243, 3, 246, 46 }, true)]
+    [DataRow(new byte[0], true)]
     public void TestWriteLongUInt8Array(byte[] value, bool stream)
     {
         ByteWriter writer = GetWriter(stream, out Stream? mem);
@@ -466,8 +468,10 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow(new char[] { 'h', 'e', 'l', 'l', 'o' }, true)]
     [DataRow(new char[] { '\\', ' ', 'w', '粞', 'r', 'l', 'd' }, true)]
+    [DataRow(new char[0], true)]
     [DataRow(new char[] { 'h', 'e', 'l', 'l', 'o' }, false)]
     [DataRow(new char[] { '\\', ' ', 'w', '粞', 'r', 'l', 'd' }, false)]
+    [DataRow(new char[0], false)]
     public void TestWriteCharArray(char[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -476,16 +480,20 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow("hello", true)]
     [DataRow("\\ w粞rld", true)]
+    [DataRow("", true)]
     [DataRow("hello", false)]
     [DataRow("\\ w粞rld", false)]
+    [DataRow("", false)]
     public void TestWriteString(string value, bool stream)
     {
         TestOne(value, stream);
     }
 
     [TestMethod]
-    [DataRow(new string[] { "hello", "\\ w粞rld" }, true)]
-    [DataRow(new string[] { "hello", "\\ w粞rld" }, false)]
+    [DataRow(new string[] { "hello", "\\ w粞rld", "" }, true)]
+    [DataRow(new string[0], true)]
+    [DataRow(new string[] { "hello", "\\ w粞rld", "" }, false)]
+    [DataRow(new string[0], false)]
     public void TestWriteStringArray(string[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -494,8 +502,10 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow("hello", true)]
     [DataRow("\\ w粞rld", true)]
+    [DataRow("", true)]
     [DataRow("hello", false)]
     [DataRow("\\ w粞rld", false)]
+    [DataRow("", false)]
     public void TestWriteShortString(string value, bool stream)
     {
         ByteWriter writer = GetWriter(stream, out Stream? mem);
@@ -565,8 +575,10 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow("hello", true)]
     [DataRow("\\ world", true)]
+    [DataRow("", true)]
     [DataRow("hello", false)]
     [DataRow("\\ world", false)]
+    [DataRow("", false)]
     public void TestWriteShortASCIIString(string value, bool stream)
     {
         ByteWriter writer = GetWriter(stream, out Stream? mem);
@@ -648,8 +660,10 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow(new double[] { 12d, 6d, 0.012842042048d }, true)]
     [DataRow(new double[] { 4d, 1d, -53d }, true)]
+    [DataRow(new double[0], true)]
     [DataRow(new double[] { 12d, 6d, 0.012842042048d }, false)]
     [DataRow(new double[] { 4d, 1d, -53d }, false)]
+    [DataRow(new double[0], false)]
     public void TestWriteDecimalArray(double[] value, bool stream)
     {
         decimal[] val = new decimal[value.Length];
@@ -674,8 +688,10 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow(new double[] { 12d, 6d, 0.012842042048d }, true)]
     [DataRow(new double[] { 4d, 1d, -53d }, true)]
+    [DataRow(new double[0], true)]
     [DataRow(new double[] { 12d, 6d, 0.012842042048d }, false)]
     [DataRow(new double[] { 4d, 1d, -53d }, false)]
+    [DataRow(new double[0], false)]
     public void TestWriteDoubleArray(double[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -696,8 +712,10 @@ public class ByteEncoderTests
     [TestMethod]
     [DataRow(new float[] { 12f, 6f, 0.012842042048f }, true)]
     [DataRow(new float[] { 4f, 1f, -53f }, true)]
+    [DataRow(new float[0], true)]
     [DataRow(new float[] { 12f, 6f, 0.012842042048f }, false)]
     [DataRow(new float[] { 4f, 1f, -53f }, false)]
+    [DataRow(new float[0], false)]
     public void TestWriteFloatArray(float[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -788,7 +806,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new int[] { -1, 3, 6 }, true)]
+    [DataRow(new int[0], true)]
     [DataRow(new int[] { -1, 3, 6 }, false)]
+    [DataRow(new int[0], false)]
     public void TestWriteInt32Array(int[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -808,7 +828,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new long[] { -1L, 3L, long.MaxValue }, true)]
+    [DataRow(new long[0], true)]
     [DataRow(new long[] { -1L, 3L, long.MaxValue }, false)]
+    [DataRow(new long[0], false)]
     public void TestWriteInt64Array(long[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -828,7 +850,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new sbyte[] { -1, 3, sbyte.MinValue }, true)]
+    [DataRow(new sbyte[0], true)]
     [DataRow(new sbyte[] { -1, 3, sbyte.MinValue }, false)]
+    [DataRow(new sbyte[0], false)]
     public void TestWriteInt8Array(sbyte[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -848,7 +872,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new short[] { -1, 3, short.MinValue }, true)]
+    [DataRow(new short[0], true)]
     [DataRow(new short[] { -1, 3, short.MinValue }, false)]
+    [DataRow(new short[0], false)]
     public void TestWriteInt16Array(short[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -868,7 +894,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new uint[] { uint.MinValue, 3, uint.MaxValue }, true)]
+    [DataRow(new uint[0], true)]
     [DataRow(new uint[] { uint.MinValue, 3, uint.MaxValue }, false)]
+    [DataRow(new uint[0], false)]
     public void TestWriteUInt32Array(uint[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -888,7 +916,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new ulong[] { ulong.MinValue, 3ul, ulong.MaxValue }, true)]
+    [DataRow(new ulong[0], true)]
     [DataRow(new ulong[] { ulong.MinValue, 3ul, ulong.MaxValue }, false)]
+    [DataRow(new ulong[0], false)]
     public void TestWriteUInt32Array(ulong[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -908,7 +938,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new ushort[] { ushort.MinValue, 3, ushort.MaxValue }, true)]
+    [DataRow(new ushort[0], true)]
     [DataRow(new ushort[] { ushort.MinValue, 3, ushort.MaxValue }, false)]
+    [DataRow(new ushort[0], false)]
     public void TestWriteUInt32Array(ushort[] value, bool stream)
     {
         TestShortMany(value, stream);
@@ -927,7 +959,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new string[] { "2023-06-10T07:58:02.0220000", "2021-05-15T02:09:07.0005002", "2004-06-30T01:14:22.0001010" }, true)]
+    [DataRow(new string[0], true)]
     [DataRow(new string[] { "2023-06-10T07:58:02.0220000", "2021-05-15T02:09:07.0005002", "2004-06-30T01:14:22.0001010" }, false)]
+    [DataRow(new string[0], false)]
     public void TestWriteDateTimeArray(string[] dts, bool stream)
     {
         DateTime[] value = new DateTime[dts.Length];
@@ -971,7 +1005,9 @@ public class ByteEncoderTests
 
     [TestMethod]
     [DataRow(new string[] { "cdca249acc1e490aaab7dcacc6891d4e", "3c1e0236cf2648caa98665ad01b5eff1", "e47e5b5a272340dbb3918d9221d3e17b" }, true)]
+    [DataRow(new string[0], true)]
     [DataRow(new string[] { "cdca249acc1e490aaab7dcacc6891d4e", "3c1e0236cf2648caa98665ad01b5eff1", "e47e5b5a272340dbb3918d9221d3e17b" }, false)]
+    [DataRow(new string[0], false)]
     public void TestWriteGuidArray(string[] dts, bool stream)
     {
         Guid[] value = new Guid[dts.Length];
@@ -1033,10 +1069,12 @@ public class ByteEncoderTests
     {
         typeof(ByteReader), typeof(string), typeof(object), typeof(Microsoft.VisualStudio.TestTools.UnitTesting.Logging.Logger)
     }, true)]
+    [DataRow(new Type[0], true)]
     [DataRow(new Type[]
     {
         typeof(ByteReader), typeof(string), typeof(object), typeof(Microsoft.VisualStudio.TestTools.UnitTesting.Logging.Logger)
     }, false)]
+    [DataRow(new Type[0], false)]
     public void TestWriteTypeArray(Type[] value, bool stream)
     {
         ByteWriter writer = GetWriter(stream, out Stream? memory);
@@ -1157,6 +1195,9 @@ public class ByteEncoderTests
     [DataRow(new byte[] { 0, 0, 0, 30, 16, 255, 224, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 12, 52, 64 }, true, true)]
     [DataRow(new byte[] { 0, 0, 0, 30, 16, 255, 224, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 12, 52, 64 }, true, false)]
     [DataRow(new byte[] { 0, 0, 0, 30, 16, 255, 224, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 12, 52, 64 }, false, false)]
+    [DataRow(new byte[0], true, true)]
+    [DataRow(new byte[0], true, false)]
+    [DataRow(new byte[0], false, false)]
     public void TestWriteZeroCompressedUInt8ArrayType(byte[] value, bool @long, bool stream)
     {
         ByteWriter writer = GetWriter(stream, out Stream? mem);
@@ -1194,6 +1235,9 @@ public class ByteEncoderTests
     [DataRow(new ushort[] { 1, 0, 0, 30, 16, 255, 2224, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52, 64 }, true, true)]
     [DataRow(new ushort[] { 1, 0, 0, 30, 16, 255, 2224, 0, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52, 64 }, true, false)]
     [DataRow(new ushort[] { 0, 0, 0, 30, 16, 255, 65535, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 12, 15, 64 }, false, false)]
+    [DataRow(new ushort[0], true, true)]
+    [DataRow(new ushort[0], true, false)]
+    [DataRow(new ushort[0], false, false)]
     public void TestWriteZeroCompressedUInt16ArrayType(ushort[] value, bool @long, bool stream)
     {
         ByteWriter writer = GetWriter(stream, out Stream? mem);
@@ -1231,6 +1275,9 @@ public class ByteEncoderTests
     [DataRow(new uint[] { 1, 0, 0, 30, 16, 255, 2224, uint.MaxValue, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52 }, true, true)]
     [DataRow(new uint[] { 1, 0, 0, 30, 16, 255, 2224, uint.MaxValue, 0, 0, 0, 0, 0, 0, 0, 21, 0, 4, 52 }, true, false)]
     [DataRow(new uint[] { 0, 0, 0, 30, 16, 255, 65535, 0, 0, 0, 0, 0, 0, 0, 0, 16, 0, 12, 15, 64 }, false, false)]
+    [DataRow(new uint[0], true, true)]
+    [DataRow(new uint[0], true, false)]
+    [DataRow(new uint[0], false, false)]
     public void TestWriteZeroCompressedUInt32ArrayType(uint[] value, bool @long, bool stream)
     {
         ByteWriter writer = GetWriter(stream, out Stream? mem);
