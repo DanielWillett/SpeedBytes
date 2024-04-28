@@ -331,7 +331,7 @@ public class ByteReader
     /// <exception cref="ArgumentOutOfRangeException"/>
     public void LoadNew(byte[] bytes, int index = 0)
     {
-        if (index >= bytes.Length)
+        if (index > bytes.Length || bytes.Length != 0 && index == bytes.Length)
             throw new ArgumentOutOfRangeException(nameof(index));
         if (index < 0)
             index = 0;
