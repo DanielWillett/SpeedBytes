@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>1.1.0</Version>
-    <PackageReleaseNotes>Fixed vulnerability with ByteReader.ReadBlock causing infinite loop on .NET Framework.</PackageReleaseNotes>
+    <Version>1.1.1</Version>
+    <PackageReleaseNotes>Fixed bug with writing short strings with too long of a length. Added WriteShortAscii and nullable variant to accompany ReadShortAsciiString.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup>

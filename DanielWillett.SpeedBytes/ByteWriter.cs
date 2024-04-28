@@ -1072,7 +1072,106 @@ public class ByteWriter
             binary = binary[..ct];
 #endif
 
-        WriteInternal((ushort)ct);
+        WriteInternal((byte)ct);
+        if (_streamMode)
+        {
+#if NETFRAMEWORK
+            _stream!.Write(binary, 0, ct);
+#else
+            _stream!.Write(binary);
+#endif
+            _size += ct;
+            return;
+        }
+        int newsize = _size + ct;
+        if (newsize > _buffer.Length)
+            ExtendBufferIntl(newsize);
+#if NETFRAMEWORK
+        System.Buffer.BlockCopy(binary, 0, _buffer, _size, ct);
+#else
+        fixed (byte* bufPtr = &_buffer[_size])
+        fixed (byte* charData = binary)
+            System.Buffer.MemoryCopy(charData, bufPtr, ct, ct);
+#endif
+        _size = newsize;
+    }
+
+    /// <summary>
+    /// Write an ASCII string span to the buffer with an unsigned 8-bit length header.
+    /// </summary>
+    /// <remarks>Max length (in ASCII bytes): 255.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 255 ASCII bytes.</exception>
+    public void WriteShortAscii(string n)
+    {
+        if (n == null)
+            throw new ArgumentNullException(nameof(n));
+
+        WriteShort(n.AsSpan());
+    }
+
+    /// <summary>
+    /// Write a nullable ASCII string to the buffer with an unsigned 8-bit length header.
+    /// </summary>
+    /// <remarks>Max length (in ASCII bytes): 255.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 255 ASCII bytes.</exception>
+    public void WriteNullableShortAscii(string? n)
+    {
+        if (n is not null)
+        {
+            Write(true);
+            WriteShort(n.AsSpan());
+        }
+        else Write(false);
+    }
+
+    /// <summary>
+    /// Write an ASCII string to the buffer with an unsigned 8-bit length header.
+    /// </summary>
+    /// <remarks>Max length (in ASCII bytes): 255.</remarks>
+    /// <exception cref="ArgumentOutOfRangeException"><paramref name="n"/> is longer than 255 ASCII bytes.</exception>
+    public unsafe void WriteShortAscii(ReadOnlySpan<char> n)
+    {
+        CheckArrayLength(typeof(char), n.Length, byte.MaxValue, out int charCt);
+        if (charCt == 0)
+        {
+            Write((byte)0);
+            return;
+        }
+#if NETFRAMEWORK
+        int ct;
+        byte[] binary;
+        fixed (char* ptr = n)
+        {
+            ct = Encoding.ASCII.GetByteCount(ptr, n.Length);
+            CheckArrayLength(typeof(char), ct, byte.MaxValue, out ct);
+            if (ct == 0)
+            {
+                Write((byte)0);
+                return;
+            }
+            binary = new byte[ct];
+            fixed (byte* ptr2 = binary)
+            {
+                ct = Encoding.ASCII.GetBytes(ptr, n.Length, ptr2, ct);
+            }
+        }
+#else
+        int ct = Encoding.ASCII.GetByteCount(n);
+        CheckArrayLength(typeof(char), ct, byte.MaxValue, out ct);
+        if (ct == 0)
+        {
+            Write((byte)0);
+            return;
+        }
+
+        Span<byte> binary = stackalloc byte[ct];
+
+        ct = Encoding.ASCII.GetBytes(n, binary);
+        if (binary.Length != ct)
+            binary = binary[..ct];
+#endif
+
+        WriteInternal((byte)ct);
         if (_streamMode)
         {
 #if NETFRAMEWORK

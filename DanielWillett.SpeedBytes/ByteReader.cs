@@ -1210,9 +1210,21 @@ public class ByteReader
     /// <summary>
     /// Reads an ASCII <see cref="string"/> from the buffer.
     /// </summary>
-    public string ReadAsciiSmall()
+    [Obsolete("Renamed to ReadShortAsciiString for consistancy.")]
+    public string ReadAsciiSmall() => ReadShortAsciiString();
+
+    /// <summary>
+    /// Reads a nullable ASCII <see cref="string"/> from the buffer.
+    /// </summary>
+    [Obsolete("Renamed to ReadNullableShortAsciiString for consistancy.")]
+    public string? ReadNullableAsciiSmall() => ReadNullableShortAsciiString();
+
+    /// <summary>
+    /// Reads an ASCII <see cref="string"/> from the buffer.
+    /// </summary>
+    public string ReadShortAsciiString()
     {
-        ushort length = ReadUInt8();
+        int length = ReadUInt8();
 
         if (length == 0)
             return string.Empty;
@@ -1231,10 +1243,10 @@ public class ByteReader
     /// <summary>
     /// Reads a nullable ASCII <see cref="string"/> from the buffer.
     /// </summary>
-    public string? ReadNullableAsciiSmall()
+    public string? ReadNullableShortAsciiString()
     {
         if (!ReadBool()) return null;
-        return ReadAsciiSmall();
+        return ReadShortAsciiString();
     }
 
     /// <summary>

@@ -492,6 +492,148 @@ public class ByteEncoderTests
     }
 
     [TestMethod]
+    [DataRow("hello", true)]
+    [DataRow("\\ w粞rld", true)]
+    [DataRow("hello", false)]
+    [DataRow("\\ w粞rld", false)]
+    public void TestWriteShortString(string value, bool stream)
+    {
+        ByteWriter writer = GetWriter(stream, out Stream? mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteShort(value);
+            Console.WriteLine(value);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+
+            Assert.AreEqual(10L, reader.ReadInt64());
+            string readValue = reader.ReadShortString();
+            Console.WriteLine(readValue);
+            Assert.AreEqual(value, readValue);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+
+        writer = GetWriter(stream, out mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteNullableShort(value);
+            Console.WriteLine(value);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+            Assert.AreEqual(10L, reader.ReadInt64());
+            string? rtn = reader.ReadNullableShortString();
+            Assert.IsNotNull(rtn);
+
+            Console.WriteLine(rtn);
+            Assert.AreEqual(value, rtn);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+    }
+
+    [TestMethod]
+    [DataRow("hello", true)]
+    [DataRow("\\ world", true)]
+    [DataRow("hello", false)]
+    [DataRow("\\ world", false)]
+    public void TestWriteShortASCIIString(string value, bool stream)
+    {
+        ByteWriter writer = GetWriter(stream, out Stream? mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteShortAscii(value);
+            Console.WriteLine(value);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+
+            Assert.AreEqual(10L, reader.ReadInt64());
+            string readValue = reader.ReadShortAsciiString();
+            Console.WriteLine(readValue);
+            Assert.AreEqual(value, readValue);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+
+        writer = GetWriter(stream, out mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteNullableShortAscii(value);
+            Console.WriteLine(value);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+            Assert.AreEqual(10L, reader.ReadInt64());
+            string? rtn = reader.ReadNullableShortAsciiString();
+            Assert.IsNotNull(rtn);
+
+            Console.WriteLine(rtn);
+            Assert.AreEqual(value, rtn);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+    }
+
+    [TestMethod]
     [DataRow(12d, true)]
     [DataRow(0d, true)]
     [DataRow(-4d, true)]

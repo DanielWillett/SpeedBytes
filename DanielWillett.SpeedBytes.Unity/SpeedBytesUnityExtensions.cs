@@ -28,7 +28,7 @@ public static class SpeedBytesUnityExtensions
     /// Must be called to register types for auto-serialization.
     /// </summary>
     /// <remarks>This registration actually happens in the type initializer but this method will invoke that, as will any other method in this class.</remarks>
-    [MethodImpl(MethodImplOptions.NoInlining)]
+    [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
     public static void Register()
     {
 
