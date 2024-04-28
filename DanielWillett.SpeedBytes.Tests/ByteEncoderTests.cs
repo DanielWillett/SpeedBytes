@@ -1,10 +1,12 @@
 ﻿#define PRINT_BYTES
 using DanielWillett.SpeedBytes.Compression;
 using DanielWillett.SpeedBytes.Formatting;
+using DanielWillett.SpeedBytes.Unity;
 using System.Collections;
 using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using UnityEngine;
 
 // ReSharper disable LocalizableElement
 
@@ -14,6 +16,11 @@ namespace DanielWillett.SpeedBytes.Tests;
 [TestClass]
 public class ByteEncoderTests
 {
+    [ClassInitialize]
+    public static void Initialize(TestContext testContext)
+    {
+        SpeedBytesUnityExtensions.Register();
+    }
     private static ByteWriter GetWriter(bool stream, out Stream? memory)
     {
         ByteWriter writer = new ByteWriter(stream ? 2 : 512);
@@ -65,6 +72,7 @@ public class ByteEncoderTests
         {
             writer.Write(10L);
             ByteWriter.GetWriteMethodDelegate<T>(false).Invoke(writer, value);
+            Console.WriteLine(value);
             TryPrint(writer);
             ByteReader reader = new ByteReader();
             if (mem == null)
@@ -76,7 +84,9 @@ public class ByteEncoderTests
             }
 
             Assert.AreEqual(10L, reader.ReadInt64());
-            Assert.AreEqual(value, ByteReader.GetReadMethodDelegate<T>(false).Invoke(reader));
+            T readValue = ByteReader.GetReadMethodDelegate<T>(false).Invoke(reader);
+            Console.WriteLine(readValue);
+            Assert.AreEqual(value, readValue);
             Assert.IsFalse(reader.HasFailed);
         }
         finally
@@ -102,6 +112,7 @@ public class ByteEncoderTests
             Delegate d = ByteWriter.CreateWriteMethodDelegate(type, true);
             MethodInfo invMethod = d.GetType().GetMethod("Invoke")!;
             invMethod.Invoke(d, [ writer, value ]);
+            Console.WriteLine(value);
             TryPrint(writer);
             ByteReader reader = new ByteReader();
             if (mem == null)
@@ -118,12 +129,14 @@ public class ByteEncoderTests
             Assert.IsNotNull(rtn);
             if (rtn is T t)
             {
+                Console.WriteLine(t);
                 Assert.AreEqual(value, t);
             }
             else if (rtn.GetType() == type)
             {
                 object nullable = Activator.CreateInstance(type, [ value ])!;
                 Assert.AreEqual(nullable, rtn);
+                Console.WriteLine(nullable);
             }
             Assert.IsFalse(reader.HasFailed);
         }
@@ -1424,5 +1437,253 @@ public class ByteEncoderTests
         int ct2 = ByteFormatter.FormatCapacity(capacity, capacityString, decimals: decimals);
         Assert.AreEqual(ct2, ct);
         Console.WriteLine(capacityString.ToString());
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, true)]
+    [DataRow(1f, 2f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, false)]
+    public void TestWriteVector3(float x, float y, bool stream)
+    {
+        TestOne(new Vector2(x, y), stream);
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, 3f, true)]
+    [DataRow(1f, 2f, 3f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, false)]
+    public void TestWriteVector2(float x, float y, float z, bool stream)
+    {
+        TestOne(new Vector3(x, y, z), stream);
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, 3f, 4f, true)]
+    [DataRow(1f, 2f, 3f, 4f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, 5f, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, 5f, false)]
+    public void TestWriteVector4(float x, float y, float z, float w, bool stream)
+    {
+        TestOne(new Vector4(x, y, z, w), stream);
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, 3f, 4f, true)]
+    [DataRow(1f, 2f, 3f, 4f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, 5f, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, 5f, false)]
+    public void TestWriteQuaternion(float x, float y, float z, float w, bool stream)
+    {
+        TestOne(new Quaternion(x, y, z, w), stream);
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, 3f, 4f, 5f, 6f, true)]
+    [DataRow(1f, 2f, 3f, 4f, 5f, 6f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, -6f, -7f, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, -6f, -7f, false)]
+    public void TestWriteBounds(float centerX, float centerY, float centerZ, float extentsX, float extentsY, float extentsZ, bool stream)
+    {
+        Bounds b = default;
+        b.center = new Vector3(centerX, centerY, centerZ);
+        b.extents = new Vector3(extentsX, extentsY, extentsZ);
+        TestOne(b, stream);
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, 3f, 4f, 5f, 6f, true)]
+    [DataRow(1f, 2f, 3f, 4f, 5f, 6f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, -6f, -7f, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, -6f, -7f, false)]
+    public void TestWriteRay(float originX, float originY, float originZ, float dirX, float dirY, float dirZ, bool stream)
+    {
+        Ray ray = new Ray(new Vector3(originX, originY, originZ), new Vector3(dirX, dirY, dirZ));
+        TestOne(ray, stream);
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, 3f, 4f, true)]
+    [DataRow(1f, 2f, 3f, 4f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, false)]
+    public void TestWriteRay2D(float originX, float originY, float dirX, float dirY, bool stream)
+    {
+        Ray2D ray = new Ray2D(new Vector2(originX, originY), new Vector2(dirX, dirY).normalized);
+        TestOne(ray, stream);
+    }
+
+    [TestMethod]
+    [DataRow(1f, 2f, 3f, 4f, true)]
+    [DataRow(1f, 2f, 3f, 4f, false)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, true)]
+    [DataRow(float.NaN, float.PositiveInfinity, float.NegativeInfinity, -5f, false)]
+    public void TestWritePlane(float dirX, float dirY, float dirZ, float distance, bool stream)
+    {
+        Plane plane = new Plane(new Vector3(dirX, dirY, dirZ).normalized, distance);
+        TestOne(plane, stream);
+    }
+
+    [TestMethod]
+    [DataRow((byte)12, (byte)15, (byte)21, (byte)254, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, (byte)12, false)]
+    [DataRow((byte)12, (byte)15, (byte)21, (byte)254, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, (byte)12, false)]
+    public void TestWriteColor32(byte r, byte g, byte b, byte a, bool stream)
+    {
+        Color32 color = new Color32(r, g, b, a);
+        TestOne(color, stream);
+    }
+
+    [TestMethod]
+    [DataRow((byte)12, (byte)15, (byte)21, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, false)]
+    [DataRow((byte)12, (byte)15, (byte)21, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, false)]
+    public void TestWriteColor32NoAlpha(byte r, byte g, byte b, bool stream)
+    {
+        Color32 color = new Color32(r, g, b, 255);
+        ByteWriter writer = GetWriter(stream, out Stream? mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteNoAlpha(color);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+
+            Assert.AreEqual(10L, reader.ReadInt64());
+            Color32 readValue = reader.ReadColor32NoAlpha();
+            Console.WriteLine(readValue);
+            Assert.AreEqual(color, readValue);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+
+        writer = GetWriter(stream, out mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteNullableNoAlpha((Color32?)color);
+            Console.WriteLine(color);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+            Assert.AreEqual(10L, reader.ReadInt64());
+            Color32? rtn = reader.ReadNullableColor32NoAlpha();
+            Assert.IsNotNull(rtn);
+            Assert.AreEqual(color, rtn);
+            Console.WriteLine(rtn);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+    }
+
+    [TestMethod]
+    [DataRow((byte)12, (byte)15, (byte)21, (byte)254, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, (byte)12, false)]
+    [DataRow((byte)12, (byte)15, (byte)21, (byte)254, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, (byte)12, false)]
+    public void TestWriteColor(byte r, byte g, byte b, byte a, bool stream)
+    {
+        Color color = new Color32(r, g, b, a);
+        TestOne(color, stream);
+    }
+
+    [TestMethod]
+    [DataRow((byte)12, (byte)15, (byte)21, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, false)]
+    [DataRow((byte)12, (byte)15, (byte)21, true)]
+    [DataRow((byte)24, (byte)36, (byte)255, false)]
+    public void TestWriteColorNoAlpha(byte r, byte g, byte b, bool stream)
+    {
+        Color color = new Color32(r, g, b, 255);
+        ByteWriter writer = GetWriter(stream, out Stream? mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteNoAlpha(color);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+
+            Assert.AreEqual(10L, reader.ReadInt64());
+            Color readValue = reader.ReadColorNoAlpha();
+            Console.WriteLine(readValue);
+            Assert.AreEqual(color, readValue);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
+
+        writer = GetWriter(stream, out mem);
+        try
+        {
+            writer.Write(10L);
+            writer.WriteNullableNoAlpha((Color?)color);
+            Console.WriteLine(color);
+            TryPrint(writer);
+            ByteReader reader = new ByteReader();
+            if (mem == null)
+                reader.LoadNew(writer.ToArray());
+            else
+            {
+                mem.Seek(0, SeekOrigin.Begin);
+                reader.LoadNew(mem);
+            }
+            Assert.AreEqual(10L, reader.ReadInt64());
+            Color? rtn = reader.ReadNullableColorNoAlpha();
+            Assert.IsNotNull(rtn);
+            Assert.AreEqual(color, rtn);
+            Console.WriteLine(rtn);
+            Assert.IsFalse(reader.HasFailed);
+        }
+        finally
+        {
+            if (mem != null)
+            {
+                mem.Dispose();
+                writer.Stream = null;
+            }
+        }
     }
 }

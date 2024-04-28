@@ -524,6 +524,8 @@ public class ByteReader
                 do
                 {
                     int read = Stream!.Read(tempBuffer, 0, tempBuffer.Length);
+                    if (read == 0)
+                        break;
                     tempBuffer.AsSpan(0, read).CopyTo(buffer.Slice(offset + length, bytesLeft));
                     bytesLeft -= read;
                     length += read;
@@ -547,6 +549,8 @@ public class ByteReader
             do
             {
                 int read = Stream!.Read(tempBuffer, 0, tempBuffer.Length);
+                if (read == 0)
+                    break;
                 tempBuffer.AsSpan(0, read).CopyTo(buffer.Slice(length, bytesLeft));
                 bytesLeft -= read;
                 length += read;

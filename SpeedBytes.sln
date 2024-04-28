@@ -10,7 +10,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DanielWillett.SpeedBytes.Tests", "DanielWillett.SpeedBytes.Tests\DanielWillett.SpeedBytes.Tests.csproj", "{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DanielWillett.SpeedBytes.Tests", "DanielWillett.SpeedBytes.Tests\DanielWillett.SpeedBytes.Tests.csproj", "{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DanielWillett.SpeedBytes.Unity", "DanielWillett.SpeedBytes.Unity\DanielWillett.SpeedBytes.Unity.csproj", "{1FD23FD2-39FD-4D97-9A35-A316B544FEBC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,6 +28,10 @@ Global
 		{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9F97C833-DB9A-4C1A-83EF-D93042DF8EEB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FD23FD2-39FD-4D97-9A35-A316B544FEBC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FD23FD2-39FD-4D97-9A35-A316B544FEBC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FD23FD2-39FD-4D97-9A35-A316B544FEBC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FD23FD2-39FD-4D97-9A35-A316B544FEBC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,13 +12,24 @@
 
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
     <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
+    <Reference Include="UnityEngine">
+      <HintPath>../DanielWillett.SpeedBytes.Unity/Libraries/UnityEngine.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <PackageReference Include="System.Memory" Version="[4.5.0,)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1' Or '$(TargetFramework)' == 'netcoreapp3.1' Or '$(TargetFramework)' == 'net461'">
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="[4.5.0,)" />
+  </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DanielWillett.SpeedBytes\DanielWillett.SpeedBytes.csproj" />
+    <ProjectReference Include="../DanielWillett.SpeedBytes.Unity/DanielWillett.SpeedBytes.Unity.csproj" />
+    <ProjectReference Include="../DanielWillett.SpeedBytes/DanielWillett.SpeedBytes.csproj" />
   </ItemGroup>
 
   <ItemGroup>
