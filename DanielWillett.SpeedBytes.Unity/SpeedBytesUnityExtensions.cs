@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace DanielWillett.SpeedBytes.Unity;
 
@@ -27,6 +28,7 @@ public static class SpeedBytesUnityExtensions
     /// Must be called to register types for auto-serialization.
     /// </summary>
     /// <remarks>This registration actually happens in the type initializer but this method will invoke that, as will any other method in this class.</remarks>
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void Register()
     {
 
@@ -551,6 +553,441 @@ public static class SpeedBytesUnityExtensions
     }
 
     /// <summary>
+    /// Write a <see cref="Vector2"/> to the buffer at half precision.
+    /// </summary>
+    /// <remarks>In .NET 5.0 there is a Half struct that can be used on non-Unity platforms.</remarks>
+    public static void WriteHalfPrecision(this ByteWriter writer, float n)
+    {
+        writer.Write(Mathf.FloatToHalf(n));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Vector2"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Vector2 n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Vector3"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Vector3 n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.z));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Vector4"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Vector4 n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.z));
+        writer.Write(Mathf.FloatToHalf(n.w));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Rect"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Rect n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.width));
+        writer.Write(Mathf.FloatToHalf(n.height));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Quaternion"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Quaternion n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.z));
+        writer.Write(Mathf.FloatToHalf(n.w));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Bounds"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Bounds n)
+    {
+        Vector3 c = n.center;
+        Vector3 e = n.extents;
+        writer.Write(Mathf.FloatToHalf(c.x));
+        writer.Write(Mathf.FloatToHalf(c.y));
+        writer.Write(Mathf.FloatToHalf(c.z));
+        writer.Write(Mathf.FloatToHalf(e.x));
+        writer.Write(Mathf.FloatToHalf(e.y));
+        writer.Write(Mathf.FloatToHalf(e.z));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Ray"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Ray n)
+    {
+        Vector3 o = n.origin;
+        Vector3 d = n.direction;
+        writer.Write(Mathf.FloatToHalf(o.x));
+        writer.Write(Mathf.FloatToHalf(o.y));
+        writer.Write(Mathf.FloatToHalf(o.z));
+        writer.Write(Mathf.FloatToHalf(d.x));
+        writer.Write(Mathf.FloatToHalf(d.y));
+        writer.Write(Mathf.FloatToHalf(d.z));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Ray2D"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Ray2D n)
+    {
+        Vector2 o = n.origin;
+        Vector2 d = n.direction;
+        writer.Write(Mathf.FloatToHalf(o.x));
+        writer.Write(Mathf.FloatToHalf(o.y));
+        writer.Write(Mathf.FloatToHalf(d.x));
+        writer.Write(Mathf.FloatToHalf(d.y));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Plane"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Plane n)
+    {
+        Vector3 norm = n.normal;
+        writer.Write(Mathf.FloatToHalf(norm.x));
+        writer.Write(Mathf.FloatToHalf(norm.y));
+        writer.Write(Mathf.FloatToHalf(norm.z));
+        writer.Write(Mathf.FloatToHalf(n.distance));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Color"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, Color n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.r));
+        writer.Write(Mathf.FloatToHalf(n.g));
+        writer.Write(Mathf.FloatToHalf(n.b));
+        writer.Write(Mathf.FloatToHalf(n.a));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Color"/> to the buffer without the alpha channel (assumed to be 1) at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNoAlpha(this ByteWriter writer, Color n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.r));
+        writer.Write(Mathf.FloatToHalf(n.g));
+        writer.Write(Mathf.FloatToHalf(n.b));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Vector2"/> to the buffer at half precision by reference.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, in Vector2 n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Vector3"/> to the buffer at half precision by reference.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, in Vector3 n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.z));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Vector4"/> to the buffer at half precision by reference.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, in Vector4 n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.z));
+        writer.Write(Mathf.FloatToHalf(n.w));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Rect"/> to the buffer at half precision by reference.
+    /// </summary>
+    /// <remarks><paramref name="n"/> isn't a readonly reference because UnityEngine is too old to have implicitly readonly properties, which would cause a copy to be made anyway.</remarks>
+    public static void WriteHalfPrecision(this ByteWriter writer, ref Rect n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.width));
+        writer.Write(Mathf.FloatToHalf(n.height));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Quaternion"/> to the buffer at half precision by reference.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, in Quaternion n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.x));
+        writer.Write(Mathf.FloatToHalf(n.y));
+        writer.Write(Mathf.FloatToHalf(n.z));
+        writer.Write(Mathf.FloatToHalf(n.w));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Bounds"/> to the buffer at half precision by reference.
+    /// </summary>
+    /// <remarks><paramref name="n"/> isn't a readonly reference because UnityEngine is too old to have implicitly readonly properties, which would cause a copy to be made anyway.</remarks>
+    public static void WriteHalfPrecision(this ByteWriter writer, ref Bounds n)
+    {
+        Vector3 c = n.center;
+        Vector3 e = n.extents;
+        writer.Write(Mathf.FloatToHalf(c.x));
+        writer.Write(Mathf.FloatToHalf(c.y));
+        writer.Write(Mathf.FloatToHalf(c.z));
+        writer.Write(Mathf.FloatToHalf(e.x));
+        writer.Write(Mathf.FloatToHalf(e.y));
+        writer.Write(Mathf.FloatToHalf(e.z));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Ray"/> to the buffer at half precision by reference.
+    /// </summary>
+    /// <remarks><paramref name="n"/> isn't a readonly reference because UnityEngine is too old to have implicitly readonly properties, which would cause a copy to be made anyway.</remarks>
+    public static void WriteHalfPrecision(this ByteWriter writer, ref Ray n)
+    {
+        Vector3 o = n.origin;
+        Vector3 d = n.direction;
+        writer.Write(Mathf.FloatToHalf(o.x));
+        writer.Write(Mathf.FloatToHalf(o.y));
+        writer.Write(Mathf.FloatToHalf(o.z));
+        writer.Write(Mathf.FloatToHalf(d.x));
+        writer.Write(Mathf.FloatToHalf(d.y));
+        writer.Write(Mathf.FloatToHalf(d.z));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Ray2D"/> to the buffer at half precision by reference.
+    /// </summary>
+    /// <remarks><paramref name="n"/> isn't a readonly reference because UnityEngine is too old to have implicitly readonly properties, which would cause a copy to be made anyway.</remarks>
+    public static void WriteHalfPrecision(this ByteWriter writer, ref Ray2D n)
+    {
+        Vector2 o = n.origin;
+        Vector2 d = n.direction;
+        writer.Write(Mathf.FloatToHalf(o.x));
+        writer.Write(Mathf.FloatToHalf(o.y));
+        writer.Write(Mathf.FloatToHalf(d.x));
+        writer.Write(Mathf.FloatToHalf(d.y));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Plane"/> to the buffer at half precision by reference.
+    /// </summary>
+    /// <remarks><paramref name="n"/> isn't a readonly reference because UnityEngine is too old to have implicitly readonly properties, which would cause a copy to be made anyway.</remarks>
+    public static void WriteHalfPrecision(this ByteWriter writer, ref Plane n)
+    {
+        Vector3 norm = n.normal;
+        writer.Write(Mathf.FloatToHalf(norm.x));
+        writer.Write(Mathf.FloatToHalf(norm.y));
+        writer.Write(Mathf.FloatToHalf(norm.z));
+        writer.Write(Mathf.FloatToHalf(n.distance));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Color"/> to the buffer at half precision by reference.
+    /// </summary>
+    public static void WriteHalfPrecision(this ByteWriter writer, in Color n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.r));
+        writer.Write(Mathf.FloatToHalf(n.g));
+        writer.Write(Mathf.FloatToHalf(n.b));
+        writer.Write(Mathf.FloatToHalf(n.a));
+    }
+
+    /// <summary>
+    /// Write a <see cref="Color"/> to the buffer at half precision by reference without the alpha channel (assumed to be 1).
+    /// </summary>
+    public static void WriteHalfPrecisionNoAlpha(this ByteWriter writer, in Color n)
+    {
+        writer.Write(Mathf.FloatToHalf(n.r));
+        writer.Write(Mathf.FloatToHalf(n.g));
+        writer.Write(Mathf.FloatToHalf(n.b));
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Vector2"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Vector2? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Vector3"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Vector3? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Vector4"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Vector4? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Rect"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Rect? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Quaternion"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Quaternion? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Bounds"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Bounds? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Ray"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Ray? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Ray2D"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Ray2D? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Plane"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Plane? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Color"/> to the buffer at half precision.
+    /// </summary>
+    public static void WriteHalfPrecisionNullable(this ByteWriter writer, Color? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecision(n.Value);
+    }
+
+    /// <summary>
+    /// Write a nullable <see cref="Color"/> to the buffer at half precision without the alpha channel (assumed to be 1).
+    /// </summary>
+    public static void WriteHalfPrecisionNullableNoAlpha(this ByteWriter writer, Color? n)
+    {
+        if (!n.HasValue)
+        {
+            writer.Write(false);
+            return;
+        }
+
+        writer.Write(true);
+        writer.WriteHalfPrecisionNoAlpha(n.Value);
+    }
+
+    /// <summary>
     /// Reads a <see cref="Vector2"/> from the buffer.
     /// </summary>
     public static Vector2 ReadVector2(this ByteReader reader)
@@ -750,9 +1187,15 @@ public static class SpeedBytesUnityExtensions
         n.z = reader.ReadFloat();
         if (reader.HasFailed)
             return default;
-        float d = reader.ReadFloat();
+        float dist = reader.ReadFloat();
+        if (reader.HasFailed)
+            return default;
 
-        return reader.HasFailed ? default : new Plane(n, d);
+        Plane p = default;
+        p.normal = n;
+        p.distance = dist;
+
+        return p;
     }
 
     /// <summary>
@@ -972,5 +1415,475 @@ public static class SpeedBytesUnityExtensions
             return null;
 
         return reader.ReadColorNoAlpha();
+    }
+
+    /// <summary>
+    /// Reads a <see cref="float"/> from the buffer at half precision.
+    /// </summary>
+    /// <remarks>In .NET 5.0 there is a Half struct that can be used on non-Unity platforms.</remarks>
+    public static float ReadHalfPrecisionFloat(this ByteReader reader)
+    {
+        ushort v = reader.ReadUInt16();
+        return reader.HasFailed ? default : Mathf.HalfToFloat(v);
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Vector2"/> from the buffer at half precision.
+    /// </summary>
+    public static Vector2 ReadHalfPrecisionVector2(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Vector2 v = default;
+
+        v.x = Mathf.HalfToFloat(x);
+        v.y = Mathf.HalfToFloat(y);
+
+        return v;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Vector3"/> from the buffer at half precision.
+    /// </summary>
+    public static Vector3 ReadHalfPrecisionVector3(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort z = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Vector3 v = default;
+
+        v.x = Mathf.HalfToFloat(x);
+        v.y = Mathf.HalfToFloat(y);
+        v.z = Mathf.HalfToFloat(z);
+
+        return v;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Vector4"/> from the buffer at half precision.
+    /// </summary>
+    public static Vector4 ReadHalfPrecisionVector4(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort z = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort w = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Vector4 v = default;
+
+        v.x = Mathf.HalfToFloat(x);
+        v.y = Mathf.HalfToFloat(y);
+        v.z = Mathf.HalfToFloat(z);
+        v.w = Mathf.HalfToFloat(w);
+
+        return v;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Rect"/> from the buffer at half precision.
+    /// </summary>
+    public static Rect ReadHalfPrecisionRect(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort width = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort height = reader.ReadUInt16();
+
+        return reader.HasFailed ? default : new Rect(Mathf.HalfToFloat(x), Mathf.HalfToFloat(y), Mathf.HalfToFloat(width), Mathf.HalfToFloat(height));
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Quaternion"/> from the buffer at half precision.
+    /// </summary>
+    public static Quaternion ReadHalfPrecisionQuaternion(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort z = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort w = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Quaternion q = default;
+
+        q.x = Mathf.HalfToFloat(x);
+        q.y = Mathf.HalfToFloat(y);
+        q.z = Mathf.HalfToFloat(z);
+        q.w = Mathf.HalfToFloat(w);
+
+        return q;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Bounds"/> from the buffer at half precision.
+    /// </summary>
+    public static Bounds ReadHalfPrecisionBounds(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort z = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort w = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort h = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort d = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Vector3 c = default, e = default;
+
+        c.x = Mathf.HalfToFloat(x);
+        c.y = Mathf.HalfToFloat(y);
+        c.z = Mathf.HalfToFloat(z);
+        e.x = Mathf.HalfToFloat(w);
+        e.y = Mathf.HalfToFloat(h);
+        e.z = Mathf.HalfToFloat(d);
+
+        Bounds b = default;
+        b.center = c;
+        b.extents = e;
+
+        return b;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Ray"/> from the buffer at half precision.
+    /// </summary>
+    public static Ray ReadHalfPrecisionRay(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort z = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort dx = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort dy = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort dz = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Vector3 o = default, d = default;
+
+        o.x = Mathf.HalfToFloat(x);
+        o.y = Mathf.HalfToFloat(y);
+        o.z = Mathf.HalfToFloat(z);
+        d.x = Mathf.HalfToFloat(dx);
+        d.y = Mathf.HalfToFloat(dy);
+        d.z = Mathf.HalfToFloat(dz);
+
+        return new Ray(o, d);
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Ray2D"/> from the buffer at half precision.
+    /// </summary>
+    public static Ray2D ReadHalfPrecisionRay2D(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort dx = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort dy = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Vector2 o = default, d = default;
+
+        o.x = Mathf.HalfToFloat(x);
+        o.y = Mathf.HalfToFloat(y);
+        d.x = Mathf.HalfToFloat(dx);
+        d.y = Mathf.HalfToFloat(dy);
+
+        return new Ray2D(o, d);
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Plane"/> from the buffer at half precision.
+    /// </summary>
+    public static Plane ReadHalfPrecisionPlane(this ByteReader reader)
+    {
+        ushort x = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort y = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort z = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort dist = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Vector3 o = default;
+
+        o.x = Mathf.HalfToFloat(x);
+        o.y = Mathf.HalfToFloat(y);
+        o.z = Mathf.HalfToFloat(z);
+
+        Plane p = default;
+        p.normal = o;
+        p.distance = Mathf.HalfToFloat(dist);
+
+        return p;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Color"/> from the buffer at half precision.
+    /// </summary>
+    public static Color ReadHalfPrecisionColor(this ByteReader reader)
+    {
+        ushort r = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort g = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort b = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort a = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Color c = default;
+
+        c.r = Mathf.HalfToFloat(r);
+        c.g = Mathf.HalfToFloat(g);
+        c.b = Mathf.HalfToFloat(b);
+        c.a = Mathf.HalfToFloat(a);
+
+        return c;
+    }
+
+    /// <summary>
+    /// Reads a <see cref="Color"/> from the buffer without the alpha channel (assumed to be 1) at half precision.
+    /// </summary>
+    public static Color ReadHalfPrecisionColorNoAlpha(this ByteReader reader)
+    {
+        ushort r = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort g = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        ushort b = reader.ReadUInt16();
+        if (reader.HasFailed)
+            return default;
+
+        Color c = default;
+
+        c.r = Mathf.HalfToFloat(r);
+        c.g = Mathf.HalfToFloat(g);
+        c.b = Mathf.HalfToFloat(b);
+
+        return c;
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Vector2"/> from the buffer at half precision.
+    /// </summary>
+    public static Vector2? ReadNullableHalfPrecisionVector2(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionVector2();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Vector3"/> from the buffer at half precision.
+    /// </summary>
+    public static Vector3? ReadNullableHalfPrecisionVector3(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionVector3();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Vector4"/> from the buffer at half precision.
+    /// </summary>
+    public static Vector4? ReadNullableHalfPrecisionVector4(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionVector4();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Rect"/> from the buffer at half precision.
+    /// </summary>
+    public static Rect? ReadNullableHalfPrecisionRect(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionRect();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Quaternion"/> from the buffer at half precision.
+    /// </summary>
+    public static Quaternion? ReadNullableHalfPrecisionQuaternion(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionQuaternion();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Bounds"/> from the buffer at half precision.
+    /// </summary>
+    public static Bounds? ReadNullableHalfPrecisionBounds(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionBounds();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Ray"/> from the buffer at half precision.
+    /// </summary>
+    public static Ray? ReadNullableHalfPrecisionRay(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionRay();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Ray2D"/> from the buffer at half precision.
+    /// </summary>
+    public static Ray2D? ReadNullableHalfPrecisionRay2D(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionRay2D();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Plane"/> from the buffer at half precision.
+    /// </summary>
+    public static Plane? ReadNullableHalfPrecisionPlane(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionPlane();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Color"/> from the buffer at half precision.
+    /// </summary>
+    public static Color? ReadNullableHalfPrecisionColor(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionColor();
+    }
+
+    /// <summary>
+    /// Reads a nullable <see cref="Color"/> from the buffer without the alpha channel (assumed to be 1) at half precision.
+    /// </summary>
+    public static Color? ReadNullableHalfPrecisionColorNoAlpha(this ByteReader reader)
+    {
+        if (!reader.ReadBool())
+            return null;
+
+        return reader.ReadHalfPrecisionColorNoAlpha();
     }
 }
